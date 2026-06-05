@@ -1,0 +1,53 @@
+{
+  "nutrition_rules": {
+    "base_score": 100,
+    "protein_bonus_per_gram": 0.5,
+    "fiber_bonus_per_gram": 1.0,
+    "sugar_penalty_per_gram": -0.8,
+    "added_sugar_penalty_per_gram": -1.5,
+    "sodium_penalty_threshold_mg": 300,
+    "sodium_penalty_amount": -10,
+    "trans_fat_penalty": -25,
+    "saturated_fat_penalty_per_gram": -1.0
+  },
+  "processing_rules": {
+    "base_score": 100,
+    "max_ingredient_count": 10,
+    "penalty_per_excess_ingredient": -2,
+    "preservative_keywords": [
+      "benzoate", "sorbate", "nitrate", "nitrite", "propionate",
+      "bha", "bht", "sulfite", "edta"
+    ],
+    "preservative_penalty": -15,
+    "artificial_color_keywords": [
+      "red 40", "yellow 5", "yellow 6", "blue 1", "blue 2", "artificial color"
+    ],
+    "artificial_color_penalty": -20,
+    "artificial_sweetener_keywords": [
+      "aspartame", "sucralose", "saccharin", "acesulfame", "neotame"
+    ],
+    "artificial_sweetener_penalty": -15
+  },
+  "ingredient_rules": {
+    "base_score": 100,
+    "high_risk_ingredients": [
+      "maltodextrin", "high fructose corn syrup", "hydrogenated", 
+      "partially hydrogenated", "msg", "monosodium glutamate",
+      "carrageenan", "potassium bromate"
+    ],
+    "high_risk_penalty": -20,
+    "moderate_risk_ingredients": [
+      "artificial flavor", "natural flavor", "modified food starch",
+      "dextrose", "soybean oil", "canola oil"
+    ],
+    "moderate_risk_penalty": -5
+  },
+  "compatibility_rules": {
+    "base_score": 100,
+    "diabetic_sugar_limit": 5,
+    "diabetic_penalty": -40,
+    "hypertension_sodium_limit": 140,
+    "hypertension_penalty": -30,
+    "allergy_penalty": -100
+  }
+}

@@ -48,6 +48,7 @@ export default function LoginPage() {
         login(resp.data.access_token);
         
         // If we have onboarding data, submit it now!
+        let createdProfileFromOnboarding = false;
         if (onboardingStore && onboardingStore.data && onboardingStore.data.completedSteps && onboardingStore.data.completedSteps.length > 0) {
           const obData = onboardingStore.data;
           
@@ -93,20 +94,34 @@ export default function LoginPage() {
           };
 
           try {
-            // Because login is asynchronous in AuthContext but the token is stored immediately,
-            // we attach the token manually to this specific request just to be absolutely safe.
             await apiClient.post('/profile/create', payload, {
               headers: { Authorization: `Bearer ${resp.data.access_token}` }
             });
-            // Profile created successfully, clear the local data
             onboardingStore.clearData();
+            createdProfileFromOnboarding = true;
           } catch (profileErr) {
             console.error("Failed to save profile data:", profileErr);
-            // We don't block login if profile fails, but log it.
           }
         }
         
-        navigate('/dashboard');
+        if (createdProfileFromOnboarding) {
+          navigate('/dashboard');
+        } else {
+          // Check if user has a profile
+          try {
+            const meResp = await apiClient.get('/auth/me', {
+              headers: { Authorization: `Bearer ${resp.data.access_token}` }
+            });
+            if (meResp.data.has_profile) {
+              navigate('/dashboard');
+            } else {
+              navigate('/onboarding/age');
+            }
+          } catch (e) {
+            console.error("Failed to fetch user profile status", e);
+            navigate('/dashboard'); // fallback
+          }
+        }
       }
     } catch (err) {
       const errorMsg = err.response?.data?.detail || "Failed to authenticate";
@@ -356,7 +371,7 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined text-primary" style={{ fontSize: '32px' }}>memory</span>
                 </div>
               </div>
-              <h1 className="font-display-lg text-display-lg text-gradient mb-md">NutriMind AI</h1>
+              <h1 className="font-display-lg text-display-lg text-gradient mb-md">Calyros AI</h1>
               <p className="font-body-lg text-body-lg text-on-surface-variant">Your Personal Food Intelligence System.</p>
               <div className="mt-xl flex gap-sm justify-center">
                 <div className="px-sm py-xs bg-surface border border-white/5 rounded-full font-label-sm text-label-sm text-on-surface-variant backdrop-blur-md">v2.4.0-rc</div>
@@ -376,7 +391,7 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>memory</span>
                 </div>
               </div>
-              <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-gradient">NutriMind AI</h1>
+              <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-gradient">Calyros AI</h1>
             </div>
             
             {/* Login Card */}

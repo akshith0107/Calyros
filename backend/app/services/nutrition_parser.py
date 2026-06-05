@@ -25,43 +25,58 @@ class NutritionParser:
         brand = raw_data.get("brand")
         serving_size = raw_data.get("serving_size")
         
-        # 2. Nutrition Facts (convert strings to float, clamp negative to 0)
+        # 2. Base Nutrition Facts (try to extract floats for backward DB compatibility where needed)
         raw_facts = raw_data.get("nutrition_facts", {})
         nutrition_facts = {}
+        # Keep basic DB compatibility fields while saving everything dynamic
+        db_fields = ["calories", "protein", "carbohydrates", "sugar", "fiber", "sodium", "total_fat", "saturated_fat", "trans_fat"]
         
-        # Mapping from scout extraction to db columns
-        field_mapping = {
-            "calories": "calories",
-            "protein_g": "protein",
-            "carbs_g": "carbohydrates",
-            "sugar_g": "sugar",
-            "fiber_g": "fiber",
-            "sodium_mg": "sodium",
-            "fat_g": "total_fat"
-        }
-        
-        for scout_field, db_field in field_mapping.items():
-            val = raw_facts.get(scout_field)
-            nutrition_facts[db_field] = NutritionParser._safe_float(val)
+        # We will parse out raw facts directly, doing basic float conversion for known DB fields
+        for k, v in raw_facts.items():
+            k_lower = k.lower().replace("_g", "").replace("_mg", "")
+            if k_lower == "carbs": k_lower = "carbohydrates"
+            if k_lower == "fat": k_lower = "total_fat"
+            
+            if k_lower in db_fields:
+                nutrition_facts[k_lower] = NutritionParser._safe_float(v)
+            else:
+                nutrition_facts[k] = v
 
-        # 3. Ingredients (ensure list of strings)
-        raw_ingredients = raw_data.get("ingredients", [])
-        ingredients: List[str] = []
-        
-        if isinstance(raw_ingredients, list):
-            for ing in raw_ingredients:
-                if isinstance(ing, str) and ing.strip():
-                    ingredients.append(ing.strip())
-        elif isinstance(raw_ingredients, str):
-            # LLM might return comma separated string
-            ingredients = [i.strip() for i in raw_ingredients.split(',') if i.strip()]
+        # Default DB fields to 0.0 if entirely missing so DB doesn't complain
+        for db_f in db_fields:
+            if db_f not in nutrition_facts:
+                nutrition_facts[db_f] = 0.0
+
+        # 3. Dynamic Discovery Dictionaries
+        vitamins = raw_data.get("vitamins", {})
+        minerals = raw_data.get("minerals", {})
+        amino_acids = raw_data.get("amino_acids", {})
+
+        # 4. Arrays
+        def parse_array(raw_arr) -> List[str]:
+            if isinstance(raw_arr, list):
+                return [str(i).strip() for i in raw_arr if str(i).strip()]
+            elif isinstance(raw_arr, str):
+                return [i.strip() for i in raw_arr.split(',') if i.strip()]
+            return []
+
+        ingredients = parse_array(raw_data.get("ingredients", []))
+        allergens = parse_array(raw_data.get("allergens", []))
+        additives = parse_array(raw_data.get("additives", []))
+        claims = parse_array(raw_data.get("claims", []))
             
         return {
             "product_name": str(product_name),
             "brand": str(brand) if brand else None,
             "serving_size": str(serving_size) if serving_size else None,
             "nutrition_facts": nutrition_facts,
-            "ingredients": ingredients
+            "ingredients": ingredients,
+            "vitamins": vitamins,
+            "minerals": minerals,
+            "amino_acids": amino_acids,
+            "allergens": allergens,
+            "additives": additives,
+            "claims": claims
         }
 
     @staticmethod

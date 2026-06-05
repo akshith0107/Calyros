@@ -27,9 +27,9 @@ export default function Navbar({ variant = 'default' }) {
   return (
     <>
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Main navigation">
-        <Link to="/" className="navbar-logo" aria-label="NutriMind AI Home">
-          <div className="navbar-logo-icon" aria-hidden="true">N</div>
-          NutriMind AI
+        <Link to="/" className="navbar-logo" aria-label="Calyros AI Home">
+          <div className="navbar-logo-icon" aria-hidden="true">C</div>
+          Calyros AI
         </Link>
 
         {variant === 'default' && (
@@ -37,7 +37,11 @@ export default function Navbar({ variant = 'default' }) {
             <Link to="/#features" className="navbar-link">Features</Link>
             <Link to="/#about" className="navbar-link">About</Link>
             <Link to="/login" className="navbar-link">Sign In</Link>
-            <Link to="/onboarding/age" className="navbar-cta">Get Started</Link>
+            <a href="/onboarding/age" className="navbar-cta" onClick={(e) => {
+              e.preventDefault();
+              try { localStorage.removeItem('nutrimind_onboarding'); } catch (err) {}
+              window.location.href = '/onboarding/age';
+            }}>Get Started</a>
           </div>
         )}
 
@@ -84,7 +88,12 @@ export default function Navbar({ variant = 'default' }) {
               <Link to="/#features" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>Features</Link>
               <Link to="/#about" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>About</Link>
               <Link to="/login" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>Sign In</Link>
-              <Link to="/onboarding/age" className="mobile-menu-cta" onClick={() => setMenuOpen(false)}>Get Started</Link>
+              <a href="/onboarding/age" className="mobile-menu-cta" onClick={(e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                try { localStorage.removeItem('nutrimind_onboarding'); } catch (err) {}
+                window.location.href = '/onboarding/age';
+              }}>Get Started</a>
             </motion.div>
           </>
         )}

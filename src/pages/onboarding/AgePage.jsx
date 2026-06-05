@@ -1,9 +1,21 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import OnboardingLayout from '../../components/OnboardingLayout';
 import InputField from '../../components/InputField';
 import { useOnboardingStore } from '../../hooks/useOnboardingStore';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AgePage() {
   const { data, updateField } = useOnboardingStore();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user?.has_profile) {
+      console.warn("User already has a profile. Redirecting to Dashboard.");
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, isLoading, navigate]);
 
   return (
     <OnboardingLayout

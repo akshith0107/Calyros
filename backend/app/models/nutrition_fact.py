@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, String, ForeignKey
+from sqlalchemy import Column, Float, String, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from app.models.mixins import UUIDMixin, TimestampMixin
@@ -20,5 +20,11 @@ class NutritionFact(Base, UUIDMixin, TimestampMixin):
     total_fat = Column(Float, nullable=True)
     saturated_fat = Column(Float, nullable=True)
     trans_fat = Column(Float, nullable=True)
+
+    # Dynamic Discovery Storage
+    dynamic_facts = Column(JSON, nullable=True, default=dict)
+    vitamins = Column(JSON, nullable=True, default=dict)
+    minerals = Column(JSON, nullable=True, default=dict)
+    amino_acids = Column(JSON, nullable=True, default=dict)
 
     product = relationship("Product", back_populates="nutrition_fact")

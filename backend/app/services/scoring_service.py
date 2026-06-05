@@ -57,7 +57,9 @@ class ScoringService:
         t2 = time.time()
         # 3. Run Nutrition Intelligence Engine (Deterministic)
         from app.services.intelligence_engine import NutritionIntelligenceEngine
-        analysis = NutritionIntelligenceEngine.analyze(facts_obj, ingredients_list, user_profile)
+        from app.models.allergy import Allergy
+        user_allergy = db.query(Allergy).filter(Allergy.user_id == user_id).first()
+        analysis = NutritionIntelligenceEngine.analyze(facts_obj, ingredients_list, user_profile, product_obj, user_allergy)
         
         overall_score = analysis["total_score"]
         classification = analysis["classification"]

@@ -152,9 +152,12 @@ export default function LandingPage() {
             </motion.p>
 
             <motion.div variants={itemVariants} className="landing-cta-group">
-              <Link to="/onboarding/age">
-                <Button variant="primary" size="large">Get Started</Button>
-              </Link>
+              <Button variant="primary" size="large" onClick={() => {
+                try {
+                  localStorage.removeItem('nutrimind_onboarding');
+                } catch (e) {}
+                window.location.href = '/onboarding/age';
+              }}>Get Started</Button>
             </motion.div>
           </motion.div>
 
@@ -211,16 +214,19 @@ export default function LandingPage() {
           <p className="landing-cta-subtitle">
             Join thousands of users making smarter nutrition decisions every day.
           </p>
-          <Link to="/onboarding/age">
-            <Button variant="primary" size="large">Start Your Profile</Button>
-          </Link>
+          <Button variant="primary" size="large" onClick={() => {
+            try {
+              localStorage.removeItem('nutrimind_onboarding');
+            } catch (e) {}
+            window.location.href = '/onboarding/age';
+          }}>Start Your Profile</Button>
         </motion.div>
       </section>
 
       {/* Footer */}
       <footer className="landing-footer">
         <span className="landing-footer-text">
-          © 2026 NutriMind AI. All rights reserved.
+          © 2026 Calyros AI. All rights reserved.
         </span>
         <div className="landing-footer-links">
           <a href="#" className="landing-footer-link">Privacy</a>

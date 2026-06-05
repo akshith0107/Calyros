@@ -23,3 +23,7 @@ class UserResponse(UserBase):
     updated_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+class UserMeResponse(UserResponse):
+    has_profile: bool = False
+    profile_completed: bool = False

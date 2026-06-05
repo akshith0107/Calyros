@@ -55,9 +55,9 @@ export default function DashboardNav() {
         aria-label="Dashboard navigation"
       >
         {/* Left — Logo */}
-        <Link to="/" className="dash-nav-logo" aria-label="NutriMind AI Home">
-          <div className="dash-nav-logo-icon" aria-hidden="true">N</div>
-          <span className="dash-nav-logo-text">NutriMind AI</span>
+        <Link to="/" className="dash-nav-logo" aria-label="Calyros AI Home">
+          <div className="dash-nav-logo-icon" aria-hidden="true">C</div>
+          <span className="dash-nav-logo-text">Calyros AI</span>
         </Link>
 
         {/* Center — Links */}

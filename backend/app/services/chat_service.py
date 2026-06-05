@@ -72,7 +72,8 @@ class ChatService:
                 "weight": profile.get("weight"),
                 "activity_level": profile.get("activity_level"),
                 "health_goal": profile.get("health_goal"),
-                "diet_type": profile.get("diet_type")
+                "diet_type": profile.get("diet_type"),
+                "allergies": profile.get("allergies", [])
             }, indent=2)
         elif profile:
             profile_context = json.dumps({
@@ -81,7 +82,8 @@ class ChatService:
                 "weight": getattr(profile, "weight", None),
                 "activity_level": getattr(profile, "activity_level", None),
                 "health_goal": getattr(profile, "health_goal", None),
-                "diet_type": getattr(profile, "diet_type", None)
+                "diet_type": getattr(profile, "diet_type", None),
+                "allergies": [al.name for al in getattr(profile, "allergies", [])] if getattr(profile, "allergies", None) else []
             }, indent=2)
             
         # Scan Context
@@ -94,7 +96,9 @@ class ChatService:
             "nutrition_facts": extracted.get("nutrition_facts"),
             "health_score": analysis.get("health_score"),
             "classification": analysis.get("classification"),
-            "score_breakdown": analysis.get("score_breakdown")
+            "score_breakdown": analysis.get("score_breakdown"),
+            "key_findings": analysis.get("nutrition_breakdown", {}).get("key_findings", []),
+            "allergens": analysis.get("nutrition_breakdown", {}).get("product_allergens", [])
         }, indent=2)
 
         # 3. Build message history

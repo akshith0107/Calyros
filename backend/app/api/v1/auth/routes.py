@@ -101,6 +101,21 @@ async def logout(request: RefreshTokenRequest, current_user: User = Depends(get_
         await redis.setex(f"blacklist:{request.refresh_token}", settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400, "true")
     return {"success": True, "message": "Logged out successfully"}
 
-@router.get("/me", response_model=UserResponse)
-def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+from app.schemas.user import UserCreate, UserResponse, UserMeResponse
+from app.services.profile_service import profile_service
+
+@router.get("/me", response_model=UserMeResponse)
+def get_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    completion = profile_service.calculate_completion(db, current_user.id)
+    # Convert SQLAlchemy model to dict, then inject custom fields
+    user_data = {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at,
+        "updated_at": current_user.updated_at,
+        "has_profile": completion.completion_percentage > 0,
+        "profile_completed": completion.profile_complete
+    }
+    return user_data

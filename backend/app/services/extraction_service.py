@@ -32,21 +32,22 @@ REQUIRED SCHEMA:
   "product_name": "string (extract exactly as stated, or return null if not found)",
   "serving_size": "string",
   "ingredients": ["string", "string"],
-  "nutrition_facts": {
-    "calories": number or null,
-    "protein_g": number or null,
-    "fat_g": number or null,
-    "carbs_g": number or null,
-    "sugar_g": number or null,
-    "fiber_g": number or null,
-    "sodium_mg": number or null
-  }
+  "nutrition_facts": {"nutrient_name": "value with unit (e.g. '5g')"},
+  "vitamins": {"vitamin_name": "value with unit"},
+  "minerals": {"mineral_name": "value with unit"},
+  "amino_acids": {"acid_name": "value with unit"},
+  "allergens": ["string"],
+  "additives": ["string"],
+  "claims": ["string"]
 }
 
 RULES:
 1. Return ONLY the JSON object. Do not include markdown formatting like ```json.
-2. If a specific nutrition fact is missing, return null for that field.
-3. Attempt to correct obvious OCR spelling mistakes in ingredients.
+2. Extract EVERY visible nutrient, vitamin, mineral, and amino acid into its respective dictionary.
+3. For the values, include the unit (e.g., '10g', '50mg', '100% DV').
+4. If a category is entirely missing from the label, return an empty dictionary {} or empty array [].
+5. Look out for allergens (e.g., 'Contains Milk', 'Soy') and additives (e.g., 'Red 40', 'Sucralose').
+6. Extract marketing or health claims (e.g., 'Gluten Free', 'Non-GMO') into the claims array.
 """
 
     async def extract_data(self, ocr_text: str) -> Dict[str, Any]:

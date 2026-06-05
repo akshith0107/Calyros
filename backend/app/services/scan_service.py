@@ -167,10 +167,10 @@ class ScanService:
             
         except Exception as e:
             # Rollback image if processing fails
-            logger.error(f"Scan pipeline failed: {str(e)}")
+            logger.exception(f"Scan pipeline failed: {str(e)}")
             if "path" in storage_res:
                 await storage_service.delete_image(storage_res["path"])
-            raise Exception(f"Failed to process scan: {str(e)}")
+            raise RuntimeError("Failed to process scan. Please try again.") from e
 
     def _store_scan_results(
         self, 
@@ -214,17 +214,28 @@ class ScanService:
             product = Product(
                 product_name=product_name if product_name else "Unknown Product",
                 brand=data.get("brand", "Unknown"),
-                image_url=image_url
+                image_url=image_url,
+                allergens=data.get("allergens", []),
+                additives=data.get("additives", []),
+                claims=data.get("claims", [])
             )
             db.add(product)
             db.flush()
             timings["product_create"] = (time.time() - t1) * 1000
             
             t2 = time.time()
+            valid_db_fields = ["calories", "protein", "carbohydrates", "sugar", "fiber", "sodium", "total_fat", "saturated_fat", "trans_fat"]
+            db_facts = {k: v for k, v in data["nutrition_facts"].items() if k in valid_db_fields}
+            dynamic_facts = {k: v for k, v in data["nutrition_facts"].items() if k not in valid_db_fields}
+            
             facts = NutritionFact(
                 product_id=product.id,
                 serving_size=data.get("serving_size"),
-                **data["nutrition_facts"]
+                dynamic_facts=dynamic_facts,
+                vitamins=data.get("vitamins", {}),
+                minerals=data.get("minerals", {}),
+                amino_acids=data.get("amino_acids", {}),
+                **db_facts
             )
             db.add(facts)
             db.flush()

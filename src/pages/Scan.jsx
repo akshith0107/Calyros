@@ -78,38 +78,29 @@ export default function Scan() {
       FE_TIMELINE.SCAN_ID = scanId;
       
       const analysisData = scanData.analysis || {};
-
-      const extractedFacts = scanData.scan_history?.extracted_json?.nutrition_facts || scanData.nutrition_facts || {};
+      const extractedFacts = scanData.scan_history?.extracted_json || {};
       
       const ocrData = {
         productName: scanData.product?.product_name || "Unknown Product",
-        confidence: 0.95,
-        parsedData: {
-          calories: extractedFacts.calories || 0,
-          servingSize: extractedFacts.serving_size || "N/A",
-          fat: extractedFacts.total_fat || 0,
-          protein: extractedFacts.protein || 0,
-          sugar: extractedFacts.sugar || 0,
-          carbs: extractedFacts.carbohydrates || 0,
-        }
+        servingSize: extractedFacts.serving_size || "N/A",
+        ingredients: extractedFacts.ingredients || [],
+        nutritionFacts: extractedFacts.nutrition_facts || {},
+        vitamins: extractedFacts.vitamins || {},
+        minerals: extractedFacts.minerals || {},
+        aminoAcids: extractedFacts.amino_acids || {},
+        allergens: extractedFacts.allergens || [],
+        additives: extractedFacts.additives || [],
+        claims: extractedFacts.claims || [],
       };
 
-      const insightsArray = [
-        analysisData.classification ? `Classification: ${analysisData.classification}` : null,
-        analysisData.goal_alignment,
-        ...(analysisData.flags || []),
-        ...(analysisData.recommendations || [])
-      ].filter(Boolean);
-
       const aiAnalysis = {
-        healthScore: analysisData.health_score || 0,
-        insights: insightsArray.length > 0 ? insightsArray : ["No insights available for this product."],
-        alternative: null,
-        nutritionBreakdown: analysisData.nutrition_breakdown,
-        scoreBreakdown: analysisData.score_breakdown,
-        personalizedAnalysis: analysisData.personalized_analysis,
-        recommendations: analysisData.recommendations,
-        metrics: scanData.scan_history || {}
+        totalScore: analysisData.health_score || analysisData.overall_score || analysisData.total_score || 0,
+        classification: analysisData.classification || "N/A",
+        personalizedAnalysis: analysisData.personalized_analysis || "",
+        recommendations: analysisData.recommendations || [],
+        flags: analysisData.flags || [],
+        breakdown: analysisData.nutrition_breakdown || {},
+        scoreBreakdown: analysisData.score_breakdown || {}
       };
 
       setAnalysisResult({ scanId, ocrData, aiAnalysis });

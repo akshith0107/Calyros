@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const STAGES = [
-  "Uploading Image...",
-  "Reading Nutrition Label...",
-  "Extracting Nutrition Data...",
-  "Comparing With Health Profile...",
-  "Generating Personalized Insights..."
+  "Uploading Image",
+  "Reading Nutrition Label",
+  "Extracting Nutrition Facts",
+  "Calculating Health Score",
+  "Generating Recommendations"
 ];
 
 export default function ProcessingView({ imageUri, onComplete }) {
@@ -63,29 +63,38 @@ export default function ProcessingView({ imageUri, onComplete }) {
           </div>
         </div>
 
-        {/* Text Stages */}
-        <div className="h-16 relative">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={currentStage}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute w-full text-center text-lg text-white font-medium tracking-wide"
-            >
-              {STAGES[currentStage]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-6">
-          <motion.div
-            className="h-full bg-white"
-            initial={{ width: '0%' }}
-            animate={{ width: `${((currentStage + 1) / STAGES.length) * 100}%` }}
-            transition={{ duration: 0.5 }}
-          />
+        {/* Text Stages Checklist */}
+        <div className="w-full mt-8 flex flex-col space-y-3">
+          {STAGES.map((stage, index) => {
+            const isCompleted = index < currentStage;
+            const isActive = index === currentStage;
+            const isPending = index > currentStage;
+            
+            return (
+              <motion.div
+                key={stage}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ 
+                  opacity: isPending ? 0.3 : 1, 
+                  x: 0,
+                  scale: isActive ? 1.05 : 1
+                }}
+                className={`flex items-center space-x-3 transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-400'}`}
+              >
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${isCompleted ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : isActive ? 'border-white animate-pulse' : 'border-gray-500'}`}>
+                  {isCompleted && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />}
+                </div>
+                <span className={`text-sm font-medium tracking-wide ${isCompleted ? 'text-[var(--color-primary)]' : isActive ? 'text-white' : 'text-gray-500'}`}>
+                  {stage}
+                </span>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>

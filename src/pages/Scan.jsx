@@ -79,16 +79,18 @@ export default function Scan() {
       
       const analysisData = scanData.analysis || {};
 
+      const extractedFacts = scanData.scan_history?.extracted_json?.nutrition_facts || scanData.nutrition_facts || {};
+      
       const ocrData = {
         productName: scanData.product?.product_name || "Unknown Product",
         confidence: 0.95,
         parsedData: {
-          calories: scanData.nutrition_facts?.calories || 0,
-          servingSize: scanData.nutrition_facts?.serving_size || "N/A",
-          fat: scanData.nutrition_facts?.total_fat || 0,
-          protein: scanData.nutrition_facts?.protein || 0,
-          sugar: scanData.nutrition_facts?.sugar || 0,
-          carbs: scanData.nutrition_facts?.carbohydrates || 0,
+          calories: extractedFacts.calories || 0,
+          servingSize: extractedFacts.serving_size || "N/A",
+          fat: extractedFacts.total_fat || 0,
+          protein: extractedFacts.protein || 0,
+          sugar: extractedFacts.sugar || 0,
+          carbs: extractedFacts.carbohydrates || 0,
         }
       };
 
@@ -102,7 +104,12 @@ export default function Scan() {
       const aiAnalysis = {
         healthScore: analysisData.health_score || 0,
         insights: insightsArray.length > 0 ? insightsArray : ["No insights available for this product."],
-        alternative: null
+        alternative: null,
+        nutritionBreakdown: analysisData.nutrition_breakdown,
+        scoreBreakdown: analysisData.score_breakdown,
+        personalizedAnalysis: analysisData.personalized_analysis,
+        recommendations: analysisData.recommendations,
+        metrics: scanData.scan_history || {}
       };
 
       setAnalysisResult({ scanId, ocrData, aiAnalysis });
@@ -149,21 +156,104 @@ export default function Scan() {
 
       <div className="flex-1 relative bg-black/40 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md min-h-[600px]">
         {state === 'IDLE' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-20 h-20 bg-[var(--color-primary)] rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,115,30,0.3)]">
-              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          <div 
+            className="absolute inset-0 flex flex-col p-8 bg-gradient-to-b from-black/20 to-black/60"
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={async (e) => {
+              e.preventDefault(); e.stopPropagation();
+              const file = e.dataTransfer.files[0];
+              if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => handleCapture(e.target.result);
+                reader.readAsDataURL(file);
+              }
+            }}
+          >
+            {/* Empty State Guidelines */}
+            <div className="absolute top-6 right-6 text-sm text-gray-400 bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm border border-white/10 flex items-center gap-2">
+              <svg className="w-4 h-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
+              Supported: JPG, PNG, WEBP
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Ready to Analyze</h2>
-            <p className="text-gray-400 max-w-md mb-8">Position the nutrition label clearly within the frame. Ensure good lighting for best results.</p>
-            <button 
-              className="px-8 py-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-full font-semibold transition-colors duration-300 shadow-lg"
-              onClick={() => setState('CAMERA')}
-            >
-              Start Scanning
-            </button>
+
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-full max-w-2xl">
+                <label className="cursor-pointer block group">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => handleCapture(e.target.result);
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                  <div className="border-2 border-dashed border-[var(--color-primary)] rounded-3xl p-12 text-center transition-all duration-300 bg-[var(--color-primary)]/5 hover:bg-[var(--color-primary)]/10 group-hover:border-[var(--color-primary-hover)] group-hover:shadow-[0_0_30px_rgba(212,115,30,0.2)]">
+                    
+                    <div className="w-24 h-24 bg-[var(--color-primary)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl transform transition-transform group-hover:scale-110">
+                      <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    
+                    <h2 className="text-3xl font-bold text-white mb-3">Upload or Capture</h2>
+                    <p className="text-lg text-gray-300 mb-8 max-w-md mx-auto">
+                      Drag & drop a nutrition label image here, or click to browse files and capture from camera.
+                    </p>
+                    
+                    <div className="flex items-center justify-center gap-4 text-sm font-medium">
+                      <span className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm transition-colors border border-white/10 flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Browse Files
+                      </span>
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setState('CAMERA'); }}
+                        className="px-6 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl shadow-lg transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        </svg>
+                        Use Camera
+                      </button>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
+            {/* Tips Section */}
+            <div className="mt-auto grid grid-cols-3 gap-6 pt-8 border-t border-white/10">
+              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
+                  <span className="text-white font-bold">1</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Good Lighting</h3>
+                <p className="text-gray-400 text-sm">Ensure the label is well-lit without harsh glares.</p>
+              </div>
+              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
+                  <span className="text-white font-bold">2</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Keep it Flat</h3>
+                <p className="text-gray-400 text-sm">Smooth out wrinkles and avoid scanning curves.</p>
+              </div>
+              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
+                  <span className="text-white font-bold">3</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Full Label</h3>
+                <p className="text-gray-400 text-sm">Capture all nutrition facts and ingredients clearly.</p>
+              </div>
+            </div>
           </div>
         )}
 

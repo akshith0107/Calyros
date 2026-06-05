@@ -44,7 +44,7 @@ class ChatService:
         session = db.query(ChatSession).filter(ChatSession.scan_id == scan_id).first()
         return session
 
-    async def send_message(self, db: Session, user_id: UUID, session_id: UUID, message: str) -> ChatMessage:
+    async def send_message_stream(self, db: Session, user_id: UUID, session_id: UUID, message: str):
         if not self.client:
             raise ValueError("GROQ_API_KEY_CHAT is missing. Chat is disabled.")
 
@@ -64,52 +64,92 @@ class ChatService:
         profile = profile_service.get_profile(db, user_id)
         
         # Profile Context
-        profile_context = ""
+        profile_context = "No profile available."
         if profile and isinstance(profile, dict):
-            profile_context = json.dumps({k: v for k, v in profile.items() if not k.startswith('_')}, default=str)
+            profile_context = json.dumps({
+                "age": profile.get("age"),
+                "gender": profile.get("gender"),
+                "weight": profile.get("weight"),
+                "activity_level": profile.get("activity_level"),
+                "health_goal": profile.get("health_goal"),
+                "diet_type": profile.get("diet_type")
+            }, indent=2)
         elif profile:
-            profile_context = json.dumps({k: v for k, v in profile.__dict__.items() if not k.startswith('_')}, default=str)
+            profile_context = json.dumps({
+                "age": getattr(profile, "age", None),
+                "gender": getattr(profile, "gender", None),
+                "weight": getattr(profile, "weight", None),
+                "activity_level": getattr(profile, "activity_level", None),
+                "health_goal": getattr(profile, "health_goal", None),
+                "diet_type": getattr(profile, "diet_type", None)
+            }, indent=2)
             
         # Scan Context
+        analysis = scan.analysis_json if scan.analysis_json else {}
+        extracted = scan.extracted_json if scan.extracted_json else {}
+        
         scan_context = json.dumps({
-            "extracted_json": scan.extracted_json,
-            "analysis_json": scan.analysis_json
-        }, indent=2, default=str)
+            "product_name": extracted.get("product_name"),
+            "ingredients": extracted.get("ingredients"),
+            "nutrition_facts": extracted.get("nutrition_facts"),
+            "health_score": analysis.get("health_score"),
+            "classification": analysis.get("classification"),
+            "score_breakdown": analysis.get("score_breakdown")
+        }, indent=2)
 
         # 3. Build message history
         messages_db = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at).all()
         
         sys_prompt = (
-            "You are Nutra AI, a highly knowledgeable and friendly nutrition assistant. "
-            "Your goal is to answer the user's questions about the food product they just scanned. "
-            "Keep your answers helpful, concise, and scientifically accurate based on their profile.\n\n"
+            "You are Nutra AI, an expert nutrition assistant.\n"
+            "Always answer based on:\n"
+            "1. The user's exact message.\n"
+            "2. The scanned product.\n"
+            "3. The user's health profile.\n"
+            "4. The nutrition facts.\n\n"
+            "Never provide generic nutrition advice. Reference actual nutrition values whenever available.\n"
+            "If user asks 'Can I eat this?', answer specifically about the scanned product.\n"
+            "If user asks 'Is this good for weight loss?', evaluate using calories, sugar, protein, fiber from the scanned product.\n"
+            "If user asks follow-up questions, use scan context before giving general advice.\n\n"
             f"USER PROFILE:\n{profile_context}\n\n"
             f"SCANNED PRODUCT CONTEXT:\n{scan_context}"
         )
         
         groq_messages = [{"role": "system", "content": sys_prompt}]
         for msg in messages_db:
-            groq_messages.append({"role": msg.role, "content": msg.content})
+            if msg.role != "system":
+                groq_messages.append({"role": msg.role, "content": msg.content})
 
-        # 4. Call LLM
-        try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=groq_messages,
-                temperature=0.4,
-                max_tokens=800
-            )
-            ai_content = response.choices[0].message.content
-        except Exception as e:
-            logger.error(f"Chat completion failed: {e}")
-            raise RuntimeError(f"AI response failed: {e}")
+        # 4. Stream response
+        async def event_generator():
+            ai_content = ""
+            try:
+                stream = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=groq_messages,
+                    temperature=0.4,
+                    max_tokens=800,
+                    stream=True
+                )
+                async for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        token = chunk.choices[0].delta.content
+                        ai_content += token
+                        # Yield in SSE format
+                        yield f"data: {json.dumps({'text': token})}\n\n"
+                        
+                # End of stream marker
+                yield "data: [DONE]\n\n"
+                
+                # 5. Save assistant message after stream finishes
+                ai_msg = ChatMessage(session_id=session_id, role="assistant", content=ai_content)
+                db.add(ai_msg)
+                db.commit()
+                
+            except Exception as e:
+                logger.error(f"Chat stream failed: {e}")
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-        # 5. Save assistant message
-        ai_msg = ChatMessage(session_id=session_id, role="assistant", content=ai_content)
-        db.add(ai_msg)
-        db.commit()
-        db.refresh(ai_msg)
-
-        return ai_msg
+        return event_generator()
 
 chat_service = ChatService()

@@ -2,6 +2,7 @@ from typing import Dict, Any
 from uuid import UUID
 from sqlalchemy.orm import Session
 import logging
+import json
 
 from app.models.product import Product
 from app.models.nutrition_fact import NutritionFact
@@ -115,13 +116,22 @@ class ScanService:
             # RESPONSE ASSEMBLY
             api_resp_start_ts = ts()
             api_resp_start = time.time()
+            score_dict = score_response.model_dump()
             result_payload["analysis"] = {
-                "health_score": score_response.overall_score,
-                "classification": score_response.classification,
-                "goal_alignment": "Analysis complete using deterministic engine.",
-                "recommendations": score_response.warnings,
-                "flags": score_response.flags
+                "health_score": score_dict["overall_score"],
+                "classification": score_dict["classification"],
+                "nutrition_breakdown": score_dict["nutrition_breakdown"],
+                "score_breakdown": score_dict["score_breakdown"],
+                "personalized_analysis": score_dict["personalized_analysis"],
+                "recommendations": score_dict["recommendations"],
+                "flags": score_dict["flags"]
             }
+            # We don't overwrite nutrition_facts here because result_payload might contain stale
+            # existing product facts if we pulled them from the DB.
+            # But wait, result_payload already contains the correct DB references from STAGE 2.
+            # The only thing we needed to avoid was replacing result_payload["nutrition_facts"] 
+            # with DB facts, but STAGE 2 (_store_scan_results) already DOES that internally!
+            # So the API response will contain DB facts unless we change _store_scan_results.
             api_resp_end = time.time()
             api_resp_end_ts = ts()
             api_resp_duration_ms = (api_resp_end - api_resp_start) * 1000
@@ -130,6 +140,24 @@ class ScanService:
             logger.info(f"API_RESPONSE_DURATION_MS = {api_resp_duration_ms:.2f}")
             
             total_time_ms = (time.time() - total_start) * 1000
+            
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━ TRACEABILITY ━━━━━━━━━━━━━━━━━━━━━━")
+            logger.info(f"OCR Output:\n{ocr_text}")
+            logger.info(f"Scout Output:\n{json.dumps(raw_ai_data, indent=2)}")
+            logger.info(f"Parsed JSON:\n{json.dumps(parsed_data, indent=2)}")
+            logger.info(f"Score Breakdown:\n{json.dumps(score_dict['score_breakdown'], indent=2) if score_dict['score_breakdown'] else '{}'}")
+            
+            # Need to handle SQLAlchemy objects safely in json.dumps
+            def safe_serialize(obj):
+                if hasattr(obj, "__dict__"):
+                    d = obj.__dict__.copy()
+                    d.pop("_sa_instance_state", None)
+                    return d
+                return str(obj)
+                
+            logger.info(f"Final API Response:\n{json.dumps(result_payload, indent=2, default=safe_serialize)}")
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            
             logger.info("-" * 60)
             logger.info(f"SCAN_ID             = {scan_id}")
             logger.info(f"TOTAL_DURATION_MS   = {total_time_ms:.2f}")
@@ -165,17 +193,26 @@ class ScanService:
         
         from sqlalchemy.orm import joinedload
         t0 = time.time()
-        product = db.query(Product)\
-            .options(joinedload(Product.nutrition_fact), joinedload(Product.ingredients))\
-            .filter(Product.product_name == product_name)\
-            .first()
+        
+        product = None
+        # Never reuse records if the name is empty or Unknown Product
+        if product_name and product_name.strip() and product_name.lower() != "unknown product":
+            product = db.query(Product)\
+                .options(joinedload(Product.nutrition_fact), joinedload(Product.ingredients))\
+                .filter(Product.product_name == product_name)\
+                .first()
+        
         timings["product_lookup"] = (time.time() - t0) * 1000
         
         if not product:
-            logger.info(f"Creating new product: {product_name}")
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━ PRODUCT SAVED ━━━━━━━━━━━━━━━━━━━━━━")
+            logger.info(f"NEW PRODUCT CREATED: {product_name}")
+            logger.info(f"Nutrition Facts Saved: {json.dumps(data['nutrition_facts'])}")
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            
             t1 = time.time()
             product = Product(
-                product_name=product_name,
+                product_name=product_name if product_name else "Unknown Product",
                 brand=data.get("brand", "Unknown"),
                 image_url=image_url
             )
@@ -186,7 +223,7 @@ class ScanService:
             t2 = time.time()
             facts = NutritionFact(
                 product_id=product.id,
-                serving_size=data["serving_size"],
+                serving_size=data.get("serving_size"),
                 **data["nutrition_facts"]
             )
             db.add(facts)
@@ -203,7 +240,25 @@ class ScanService:
             db.flush()
             timings["ingredients_create"] = (time.time() - t3) * 1000
         else:
-            logger.info(f"Reusing existing product: {product_name}")
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━ PRODUCT SAVED ━━━━━━━━━━━━━━━━━━━━━━")
+            logger.info(f"EXISTING PRODUCT FOUND: {product_name}")
+            # Print the nutrition values we are linking to (which come from the DB)
+            existing_facts = {
+                "calories": product.nutrition_fact.calories if product.nutrition_fact else None,
+                "protein": product.nutrition_fact.protein if product.nutrition_fact else None,
+                "carbohydrates": product.nutrition_fact.carbohydrates if product.nutrition_fact else None,
+                "sugar": product.nutrition_fact.sugar if product.nutrition_fact else None,
+                "fiber": product.nutrition_fact.fiber if product.nutrition_fact else None,
+                "sodium": product.nutrition_fact.sodium if product.nutrition_fact else None,
+                "total_fat": product.nutrition_fact.total_fat if product.nutrition_fact else None
+            }
+            logger.info(f"Nutrition Facts Reused: {json.dumps(existing_facts)}")
+            logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            
+            # Since we are reusing the product, the facts are what's in the DB, so we should update data to match
+            # This ensures the final API response sends back the actual DB values it was linked to!
+            data["nutrition_facts"] = existing_facts
+            
             timings["product_create"] = 0
             timings["facts_create"] = 0
             timings["ingredients_create"] = 0

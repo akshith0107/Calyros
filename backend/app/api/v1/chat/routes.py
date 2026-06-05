@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -30,7 +31,7 @@ def start_chat(
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
 
-@router.post("/{session_id}/message", response_model=ChatMessageResponse)
+@router.post("/{session_id}/message")
 async def send_message(
     session_id: UUID,
     payload: ChatMessagePayload = Body(...),
@@ -38,8 +39,8 @@ async def send_message(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        ai_msg = await chat_service.send_message(db, current_user.id, session_id, payload.message)
-        return ai_msg
+        generator = await chat_service.send_message_stream(db, current_user.id, session_id, payload.message)
+        return StreamingResponse(generator, media_type="text/event-stream")
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:

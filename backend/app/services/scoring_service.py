@@ -55,23 +55,16 @@ class ScoringService:
         timings["fetch_profile"] = (time.time() - t1) * 1000
 
         t2 = time.time()
-        # 3. Run Deterministic Engines
-        n_score, n_warn, n_flags = self.nutrition_engine.calculate(facts_obj)
-        i_score, i_warn = self.ingredient_engine.calculate(ingredients_list)
-        p_score, p_warn, p_flags = self.processing_engine.calculate(ingredients_list)
-        c_score, c_warn, c_flags = self.compatibility_engine.calculate(user_profile, facts_obj, ingredients_list)
+        # 3. Run Nutrition Intelligence Engine (Deterministic)
+        from app.services.intelligence_engine import NutritionIntelligenceEngine
+        analysis = NutritionIntelligenceEngine.analyze(facts_obj, ingredients_list, user_profile)
+        
+        overall_score = analysis["total_score"]
+        classification = analysis["classification"]
         timings["run_engines"] = (time.time() - t2) * 1000
 
         t3 = time.time()
-        # 4. Calculate Overall Score
-        overall_score = (n_score * 0.50) + (i_score * 0.20) + (c_score * 0.20) + (p_score * 0.10)
-        overall_score = round(overall_score, 1)
-
-        # 5. Classify & Aggregate Risks
-        warnings, flags = risk_engine.process_warnings_and_flags(
-            n_warn, n_flags, i_warn, p_warn, p_flags, c_warn, c_flags
-        )
-        classification = risk_engine.classify_score(overall_score, flags)
+        # Skip legacy aggregation
         timings["aggregation"] = (time.time() - t3) * 1000
 
         t4 = time.time()
@@ -81,14 +74,15 @@ class ScoringService:
             food_score = FoodScore(scan_id=scan_id)
             db.add(food_score)
             
-        food_score.nutrition_score = n_score
-        food_score.ingredient_score = i_score
-        food_score.processing_score = p_score
-        food_score.compatibility_score = c_score
         food_score.overall_score = overall_score
         food_score.classification = classification
-        food_score.warnings = warnings
-        food_score.flags = flags
+        food_score.flags = analysis["flags"]
+        food_score.warnings = []
+        
+        food_score.nutrition_breakdown = analysis["nutrition_breakdown"]
+        food_score.score_breakdown = analysis["score_breakdown"]
+        food_score.personalized_analysis = analysis["personalized_analysis"]
+        food_score.recommendations = analysis["recommendations"]
 
         db.commit()
         timings["commit_score"] = (time.time() - t4) * 1000
@@ -99,14 +93,14 @@ class ScoringService:
 
         # 7. Return Schema
         return ScoreResponse(
-            nutrition_score=n_score,
-            ingredient_score=i_score,
-            processing_score=p_score,
-            compatibility_score=c_score,
             overall_score=overall_score,
             classification=classification,
-            warnings=warnings,
-            flags=flags
+            warnings=[],
+            flags=analysis["flags"],
+            nutrition_breakdown=analysis["nutrition_breakdown"],
+            score_breakdown=analysis["score_breakdown"],
+            personalized_analysis=analysis["personalized_analysis"],
+            recommendations=analysis["recommendations"]
         )
 
     def get_score(self, db: Session, scan_id: UUID, user_id: UUID) -> ScoreResponse:

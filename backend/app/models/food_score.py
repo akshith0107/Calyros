@@ -23,6 +23,11 @@ class FoodScore(Base, UUIDMixin, TimestampMixin):
     flags = Column(DbJSON, default=list)
     warnings = Column(DbJSON, default=list)
 
+    nutrition_breakdown = Column(DbJSON, nullable=True)
+    score_breakdown = Column(DbJSON, nullable=True)
+    personalized_analysis = Column(String, nullable=True)
+    recommendations = Column(DbJSON, nullable=True)
+
     __table_args__ = (
         CheckConstraint('overall_score >= 0 AND overall_score <= 100', name='check_overall_score_range'),
     )

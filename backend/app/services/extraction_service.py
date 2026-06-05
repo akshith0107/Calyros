@@ -29,16 +29,17 @@ Your job is to parse this text and return a STRICT JSON object matching the exac
 
 REQUIRED SCHEMA:
 {
-  "product_name": "string (guess if not explicitly stated, or leave empty)",
+  "product_name": "string (extract exactly as stated, or return null if not found)",
   "serving_size": "string",
   "ingredients": ["string", "string"],
   "nutrition_facts": {
     "calories": number or null,
-    "protein": number or null,
-    "total_fat": number or null,
-    "carbohydrates": number or null,
-    "sugar": number or null,
-    "sodium": number or null
+    "protein_g": number or null,
+    "fat_g": number or null,
+    "carbs_g": number or null,
+    "sugar_g": number or null,
+    "fiber_g": number or null,
+    "sodium_mg": number or null
   }
 }
 

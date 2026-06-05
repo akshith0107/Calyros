@@ -29,15 +29,20 @@ class NutritionParser:
         raw_facts = raw_data.get("nutrition_facts", {})
         nutrition_facts = {}
         
-        numeric_fields = [
-            "calories", "protein", "carbohydrates", "sugar",
-            "added_sugar", "fiber", "sodium", "total_fat",
-            "saturated_fat", "trans_fat"
-        ]
+        # Mapping from scout extraction to db columns
+        field_mapping = {
+            "calories": "calories",
+            "protein_g": "protein",
+            "carbs_g": "carbohydrates",
+            "sugar_g": "sugar",
+            "fiber_g": "fiber",
+            "sodium_mg": "sodium",
+            "fat_g": "total_fat"
+        }
         
-        for field in numeric_fields:
-            val = raw_facts.get(field)
-            nutrition_facts[field] = NutritionParser._safe_float(val)
+        for scout_field, db_field in field_mapping.items():
+            val = raw_facts.get(scout_field)
+            nutrition_facts[db_field] = NutritionParser._safe_float(val)
 
         # 3. Ingredients (ensure list of strings)
         raw_ingredients = raw_data.get("ingredients", [])

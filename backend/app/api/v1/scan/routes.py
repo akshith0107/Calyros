@@ -70,3 +70,22 @@ async def get_my_scan_history(
         enriched_scans.append(scan_dict)
         
     return enriched_scans
+
+@router.get("/{scan_id}")
+async def get_scan_by_id(
+    scan_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    scan = db.query(ScanHistory).filter(ScanHistory.id == scan_id).first()
+    if not scan or scan.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Scan not found")
+        
+    product = db.query(Product).filter(Product.id == scan.product_id).first()
+    
+    return {
+        "id": scan.id,
+        "product_name": product.product_name if product else "Unknown",
+        "analysis": scan.analysis_json,
+        "extracted": scan.extracted_json
+    }

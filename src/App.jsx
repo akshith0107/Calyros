@@ -1,21 +1,36 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { OnboardingProvider } from './hooks/useOnboardingStore';
+import { AuthProvider } from './contexts/AuthContext';
 import ParticleGrid from './components/ParticleGrid';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import ProfileComplete from './pages/ProfileComplete';
-import AgePage from './pages/onboarding/AgePage';
-import GenderPage from './pages/onboarding/GenderPage';
-import HeightPage from './pages/onboarding/HeightPage';
-import WeightPage from './pages/onboarding/WeightPage';
-import HealthPage from './pages/onboarding/HealthPage';
-import AllergiesPage from './pages/onboarding/AllergiesPage';
-import GoalsPage from './pages/onboarding/GoalsPage';
-import ActivityPage from './pages/onboarding/ActivityPage';
-import DietPage from './pages/onboarding/DietPage';
-import AlternativesPage from './pages/onboarding/AlternativesPage';
-import Dashboard from './pages/Dashboard';
+import SkeletonLoader from './components/SkeletonLoader';
+
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const ProfileComplete = lazy(() => import('./pages/ProfileComplete'));
+
+// Onboarding Pages
+const AgePage = lazy(() => import('./pages/onboarding/AgePage'));
+const GenderPage = lazy(() => import('./pages/onboarding/GenderPage'));
+const HeightPage = lazy(() => import('./pages/onboarding/HeightPage'));
+const WeightPage = lazy(() => import('./pages/onboarding/WeightPage'));
+const HealthPage = lazy(() => import('./pages/onboarding/HealthPage'));
+const AllergiesPage = lazy(() => import('./pages/onboarding/AllergiesPage'));
+const GoalsPage = lazy(() => import('./pages/onboarding/GoalsPage'));
+const ActivityPage = lazy(() => import('./pages/onboarding/ActivityPage'));
+const DietPage = lazy(() => import('./pages/onboarding/DietPage'));
+const AlternativesPage = lazy(() => import('./pages/onboarding/AlternativesPage'));
+
+// Dashboard Pages
+const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Scan = lazy(() => import('./pages/Scan'));
+const Chat = lazy(() => import('./pages/Chat'));
+const History = lazy(() => import('./pages/History'));
+const Recommendations = lazy(() => import('./pages/Recommendations'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 const pageTransition = {
   initial: { opacity: 0, y: 12, scale: 0.99 },
@@ -34,22 +49,34 @@ function AnimatedRoutes() {
         {...pageTransition}
         style={{ minHeight: '100vh' }}
       >
-        <Routes location={location}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile-complete" element={<ProfileComplete />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/onboarding/age" element={<AgePage />} />
-          <Route path="/onboarding/gender" element={<GenderPage />} />
-          <Route path="/onboarding/height" element={<HeightPage />} />
-          <Route path="/onboarding/weight" element={<WeightPage />} />
-          <Route path="/onboarding/health" element={<HealthPage />} />
-          <Route path="/onboarding/allergies" element={<AllergiesPage />} />
-          <Route path="/onboarding/goals" element={<GoalsPage />} />
-          <Route path="/onboarding/activity" element={<ActivityPage />} />
-          <Route path="/onboarding/diet" element={<DietPage />} />
-          <Route path="/onboarding/alternatives" element={<AlternativesPage />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-black"><SkeletonLoader /></div>}>
+          <Routes location={location}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/profile-complete" element={<ProfileComplete />} />
+            
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/scan" element={<Scan />} />
+              <Route path="/chat/:scanId" element={<Chat />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            <Route path="/onboarding/age" element={<AgePage />} />
+            <Route path="/onboarding/gender" element={<GenderPage />} />
+            <Route path="/onboarding/height" element={<HeightPage />} />
+            <Route path="/onboarding/weight" element={<WeightPage />} />
+            <Route path="/onboarding/health" element={<HealthPage />} />
+            <Route path="/onboarding/allergies" element={<AllergiesPage />} />
+            <Route path="/onboarding/goals" element={<GoalsPage />} />
+            <Route path="/onboarding/activity" element={<ActivityPage />} />
+            <Route path="/onboarding/diet" element={<DietPage />} />
+            <Route path="/onboarding/alternatives" element={<AlternativesPage />} />
+          </Routes>
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );
@@ -58,10 +85,12 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <OnboardingProvider>
-        <ParticleGrid />
-        <AnimatedRoutes />
-      </OnboardingProvider>
+      <AuthProvider>
+        <OnboardingProvider>
+          <ParticleGrid />
+          <AnimatedRoutes />
+        </OnboardingProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

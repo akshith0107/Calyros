@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import GlassCard from '../components/GlassCard';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
+import Noise from '../components/Noise';
 import { useOnboardingStore } from '../hooks/useOnboardingStore';
 
 const labelMap = {
@@ -38,12 +39,67 @@ export default function ProfileComplete() {
   const summaryFields = ['age', 'gender', 'height', 'weight', 'health', 'allergies', 'goals', 'activity', 'diet', 'alternatives'];
 
   const handleContinue = () => {
-    clearData();
+    // Navigate to login WITH the onboarding data preserved in localStorage
     navigate('/login');
   };
 
   return (
-    <div className="profile-complete">
+    <div className="profile-complete relative z-0">
+      <style>{`
+        /* Hide global particles on this page */
+        .particle-canvas {
+          display: none !important;
+        }
+
+        /* Premium matte-black base */
+        .onboarding-exclusive-bg {
+          position: fixed;
+          inset: 0;
+          background: linear-gradient(180deg, #050505 0%, #111111 50%, #0A0A0A 100%);
+          z-index: -4;
+        }
+
+        /* Geometric grid background */
+        .onboarding-exclusive-grid {
+          position: fixed;
+          inset: 0;
+          z-index: -3;
+          pointer-events: none;
+          background-size: 60px 60px;
+          background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+        }
+
+        /* Ambient subtle white glow */
+        .onboarding-exclusive-glow {
+          position: fixed;
+          top: 40%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60vw;
+          height: 60vh;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+          filter: blur(80px);
+          z-index: -2;
+          pointer-events: none;
+          animation: onboardingBreathe 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes onboardingBreathe {
+          0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+      `}</style>
+
+      <div className="onboarding-exclusive-bg" />
+      <Noise opacity={0.04} />
+      <div className="onboarding-exclusive-grid" />
+      <div className="onboarding-exclusive-glow" />
+
       <Navbar variant="onboarding" />
 
       <motion.div

@@ -5,6 +5,8 @@ import GlassCard from '../components/GlassCard';
 import Button from '../components/Button';
 import DNAParticleSystem from '../components/DNAParticleSystem';
 
+import Noise from '../components/Noise';
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -58,6 +60,70 @@ const features = [
 export default function LandingPage() {
   return (
     <div>
+      <style>{`
+        /* Hide global particles on this page */
+        .particle-canvas {
+          display: none !important;
+        }
+        
+        .landing-exclusive-bg {
+          position: fixed;
+          inset: 0;
+          background-color: #050505;
+          z-index: -3;
+          overflow: hidden;
+        }
+
+        .landing-organic-layer {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          animation: organicDrift 25s infinite alternate ease-in-out;
+        }
+
+        .layer-1 {
+          background: #151515;
+          width: 80vw;
+          height: 80vh;
+          top: -20%;
+          left: -10%;
+          animation-duration: 28s;
+        }
+
+        .layer-2 {
+          background: #0A0A0A;
+          width: 90vw;
+          height: 90vh;
+          bottom: -20%;
+          right: -20%;
+          animation-duration: 35s;
+          animation-direction: alternate-reverse;
+        }
+
+        .layer-3 {
+          background: #101010;
+          width: 60vw;
+          height: 60vh;
+          top: 30%;
+          left: 40%;
+          animation-duration: 40s;
+        }
+
+        @keyframes organicDrift {
+          0% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(5%, 5%) scale(1.05); }
+          100% { transform: translate(-2%, 8%) scale(0.95); }
+        }
+      `}</style>
+      
+      {/* Tubes Cursor removed */}
+      
+      <div className="landing-exclusive-bg">
+        <div className="landing-organic-layer layer-1"></div>
+        <div className="landing-organic-layer layer-2"></div>
+        <div className="landing-organic-layer layer-3"></div>
+      </div>
+      <Noise opacity={0.06} />
       <Navbar />
 
       {/* Hero */}

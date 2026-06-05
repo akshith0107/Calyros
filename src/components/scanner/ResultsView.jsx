@@ -1,10 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '../Button';
 import HealthScoreRing from '../HealthScoreRing';
 import GlassCard from '../GlassCard';
 
 export default function ResultsView({ result, imageUri, onSave, onScanAgain, onClose }) {
-  const { ocrData, aiAnalysis } = result;
+  const { scanId, ocrData, aiAnalysis } = result;
+  const navigate = useNavigate();
   
   return (
     <div className="absolute inset-0 z-50 bg-[#050505] overflow-y-auto">
@@ -25,7 +27,20 @@ export default function ResultsView({ result, imageUri, onSave, onScanAgain, onC
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Main Score Card */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full">
-            <GlassCard className="h-full flex flex-col items-center justify-center p-8 text-center" hoverable={false}>
+            <GlassCard className="h-full flex flex-col items-center justify-center p-8 text-center relative" hoverable={false}>
+              {/* Ask Nutra AI Button */}
+              <div className="absolute top-4 right-4">
+                <button 
+                  onClick={() => navigate(`/chat/${scanId}`)}
+                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Ask Nutra AI
+                </button>
+              </div>
+
               <h3 className="text-white/60 text-sm tracking-wider uppercase mb-6">Health Score</h3>
               <HealthScoreRing score={aiAnalysis.healthScore} size={160} strokeWidth={6} />
               <div className="mt-6">

@@ -1,13 +1,119 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../services/apiClient';
+import { useAuth } from '../contexts/AuthContext';
+import { useOnboardingStore } from '../hooks/useOnboardingStore';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
+  const { login } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  
+  // Access onboarding store
+  let onboardingStore = null;
+  try {
+    // We try/catch in case someone uses this outside the provider, though it shouldn't happen
+    onboardingStore = useOnboardingStore();
+  } catch (e) {
+    console.warn("Not inside OnboardingProvider");
+  }
 
-  const handleLogin = (e) => {
+  const handleAuth = async (e) => {
     if (e) e.preventDefault();
-    navigate('/dashboard');
+    setError(null);
+    setIsLoading(true);
+    
+    // Simple placeholder for Google SSO
+    if (!email || !password || (isSignUp && !fullName)) {
+      if (e.target.type === 'button') {
+        // Assume Google SSO bypass for demo purposes since it's hardcoded in button click
+        return; 
+      }
+    }
+    
+    try {
+      if (isSignUp) {
+        await apiClient.post('/auth/register', { email, password, full_name: fullName });
+      }
+
+      const resp = await apiClient.post('/auth/login', { email, password });
+      if (resp.data.access_token) {
+        login(resp.data.access_token);
+        
+        // If we have onboarding data, submit it now!
+        if (onboardingStore && onboardingStore.data && onboardingStore.data.completedSteps && onboardingStore.data.completedSteps.length > 0) {
+          const obData = onboardingStore.data;
+          
+          // Map frontend state to backend schema
+          const payload = {
+            full_name: fullName || undefined,
+            profile: {
+              age: obData.age ? parseInt(obData.age, 10) : undefined,
+              gender: obData.gender || undefined,
+              height_cm: obData.height ? parseFloat(obData.height) : undefined,
+              weight_kg: obData.weight ? parseFloat(obData.weight) : undefined,
+              activity_level: obData.activity || undefined,
+              health_goal: obData.goals || undefined,
+              diet_type: obData.diet || undefined
+            },
+            health_conditions: {
+              diabetes: obData.health.includes('diabetes'),
+              hypertension: obData.health.includes('high-bp'),
+              cholesterol: obData.health.includes('high-cholesterol'),
+              kidney_disease: obData.health.includes('kidney-disease'),
+              liver_disease: obData.health.includes('liver-disease'),
+              thyroid_disorder: obData.health.includes('thyroid'),
+              heart_disease: obData.health.includes('heart-disease'),
+              pcos: obData.health.includes('pcos'),
+              other_conditions: obData.healthOther || undefined
+            },
+            allergies: {
+              milk: obData.allergies.includes('dairy'),
+              gluten: obData.allergies.includes('gluten'),
+              soy: obData.allergies.includes('soy'),
+              nuts: obData.allergies.includes('nuts'),
+              eggs: obData.allergies.includes('eggs'),
+              seafood: obData.allergies.includes('fish'),
+              shellfish: obData.allergies.includes('shellfish'),
+              other_allergies: obData.allergiesOther || undefined
+            },
+            preferences: {
+              vegan: obData.diet === 'vegan',
+              vegetarian: obData.diet === 'vegetarian',
+              keto: obData.diet === 'keto',
+              halal: obData.diet === 'halal'
+            }
+          };
+
+          try {
+            // Because login is asynchronous in AuthContext but the token is stored immediately,
+            // we attach the token manually to this specific request just to be absolutely safe.
+            await apiClient.post('/profile/create', payload, {
+              headers: { Authorization: `Bearer ${resp.data.access_token}` }
+            });
+            // Profile created successfully, clear the local data
+            onboardingStore.clearData();
+          } catch (profileErr) {
+            console.error("Failed to save profile data:", profileErr);
+            // We don't block login if profile fails, but log it.
+          }
+        }
+        
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || "Failed to authenticate";
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -276,14 +382,18 @@ export default function LoginPage() {
             {/* Login Card */}
             <div className="glass-panel p-xl w-full max-w-md">
               <div className="mb-lg">
-                <h2 className="font-headline-md text-headline-md text-primary mb-xs">Welcome back</h2>
-                <p className="font-body-md text-body-md text-on-surface-variant">Sign in to access your intelligence dashboard.</p>
+                <h2 className="font-headline-md text-headline-md text-primary mb-xs">
+                  {isSignUp ? 'Create an account' : 'Welcome back'}
+                </h2>
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  {isSignUp ? 'Sign up to start your intelligence dashboard.' : 'Sign in to access your intelligence dashboard.'}
+                </p>
               </div>
               
               {/* OAuth */}
               <button 
                 className="btn-glass w-full py-3.5 flex items-center justify-center gap-sm mb-lg" 
-                onClick={handleLogin}
+                onClick={handleAuth}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"></path>
@@ -301,28 +411,71 @@ export default function LoginPage() {
                 <div className="h-px bg-white/10 flex-1"></div>
               </div>
               
+              {error && (
+                <div className="mb-4 p-3 rounded-lg bg-red-900/30 border border-red-500/50 text-red-400 text-sm font-medium">
+                  {error}
+                </div>
+              )}
               {/* Form */}
-              <form className="space-y-5" onSubmit={handleLogin}>
+              <form className="space-y-5" onSubmit={handleAuth}>
+                {isSignUp && (
+                  <div>
+                    <label className="block font-label-sm text-label-sm text-on-surface-variant mb-2 ml-1" htmlFor="fullName">Full Name</label>
+                    <input 
+                      className="glass-input w-full py-3 text-primary font-body-md focus:ring-0" 
+                      id="fullName" 
+                      placeholder="John Doe" 
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required={isSignUp}
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block font-label-sm text-label-sm text-on-surface-variant mb-2 ml-1" htmlFor="email">Email Address</label>
-                  <input className="glass-input w-full py-3 text-primary font-body-md focus:ring-0" id="email" placeholder="name@example.com" type="email"/>
+                  <input 
+                    className="glass-input w-full py-3 text-primary font-body-md focus:ring-0" 
+                    id="email" 
+                    placeholder="name@example.com" 
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-2 px-1">
                     <label className="block font-label-sm text-label-sm text-on-surface-variant" htmlFor="password">Password</label>
-                    <a className="font-label-sm text-label-sm text-outline hover:text-primary transition-colors" href="#">Forgot?</a>
+                    {!isSignUp && <a className="font-label-sm text-label-sm text-outline hover:text-primary transition-colors" href="#">Forgot?</a>}
                   </div>
-                  <input className="glass-input w-full py-3 text-primary font-body-md focus:ring-0" id="password" placeholder="••••••••" type="password"/>
+                  <input 
+                    className="glass-input w-full py-3 text-primary font-body-md focus:ring-0" 
+                    id="password" 
+                    placeholder="••••••••" 
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="pt-2">
-                  <button className="btn-glass-primary w-full py-3.5 font-label-md text-label-md flex justify-center items-center gap-2" type="submit">
-                    Sign In
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                  <button 
+                    className="btn-glass-primary w-full py-3.5 font-label-md text-label-md flex justify-center items-center gap-2" 
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (isSignUp ? 'Creating Account...' : 'Signing In...') : (isSignUp ? 'Sign Up' : 'Sign In')}
+                    {!isLoading && <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>}
                   </button>
                 </div>
               </form>
               <p className="mt-lg text-center font-body-md text-body-md text-on-surface-variant">
-                Don't have an account? <a className="text-primary hover:underline transition-all font-medium" href="#">Request Access</a>
+                {isSignUp ? (
+                  <>Already have an account? <button type="button" onClick={() => setIsSignUp(false)} className="text-primary hover:underline transition-all font-medium">Sign In</button></>
+                ) : (
+                  <>Don't have an account? <button type="button" onClick={() => setIsSignUp(true)} className="text-primary hover:underline transition-all font-medium">Sign Up</button></>
+                )}
               </p>
             </div>
           </div>

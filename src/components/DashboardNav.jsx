@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
-  { label: 'Scan Product', path: '/dashboard/scan' },
-  { label: 'History', path: '/dashboard/history' },
-  { label: 'Recommendations', path: '/dashboard/recommendations' },
+  { label: 'Scan Product', path: '/scan' },
+  { label: 'Scan History', path: '/history' },
+  { label: 'Recommendations', path: '/recommendations' },
+  { label: 'Profile', path: '/profile' },
+  { label: 'Settings', path: '/settings' },
 ];
 
 export default function DashboardNav() {
@@ -15,6 +18,7 @@ export default function DashboardNav() {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -95,7 +99,7 @@ export default function DashboardNav() {
               aria-label="Profile menu"
               aria-expanded={profileOpen}
             >
-              <div className="dash-nav-avatar">A</div>
+              <div className="dash-nav-avatar">{user?.full_name?.charAt(0)?.toUpperCase() || 'U'}</div>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`dash-nav-chevron ${profileOpen ? 'open' : ''}`}>
                 <path d="M3 4.5L6 7.5L9 4.5"/>
               </svg>
@@ -111,15 +115,15 @@ export default function DashboardNav() {
                   transition={{ duration: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
                 >
                   <div className="dash-nav-dropdown-header">
-                    <div className="dash-nav-dropdown-name">Akshith</div>
-                    <div className="dash-nav-dropdown-email">akshith@example.com</div>
+                    <div className="dash-nav-dropdown-name">{user?.full_name || 'User'}</div>
+                    <div className="dash-nav-dropdown-email">{user?.email || ''}</div>
                   </div>
                   <div className="dash-nav-dropdown-divider" />
                   <Link to="/dashboard" className="dash-nav-dropdown-item">Dashboard</Link>
                   <Link to="/profile-complete" className="dash-nav-dropdown-item">Profile</Link>
                   <Link to="/dashboard" className="dash-nav-dropdown-item">Settings</Link>
                   <div className="dash-nav-dropdown-divider" />
-                  <Link to="/" className="dash-nav-dropdown-item dash-nav-dropdown-item--danger">Sign Out</Link>
+                  <button onClick={logout} className="dash-nav-dropdown-item dash-nav-dropdown-item--danger w-full text-left bg-transparent border-none">Sign Out</button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -160,8 +164,8 @@ export default function DashboardNav() {
               aria-label="Navigation menu"
             >
               <div style={{ padding: '0 0 16px', borderBottom: '1px solid var(--color-border-primary)', marginBottom: '8px' }}>
-                <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }}>Akshith</div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>akshith@example.com</div>
+                <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)' }}>{user?.full_name || 'User'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>{user?.email || ''}</div>
               </div>
               {navLinks.map((link) => (
                 <Link
@@ -175,9 +179,9 @@ export default function DashboardNav() {
                 </Link>
               ))}
               <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--color-border-primary)' }}>
-                <Link to="/" className="mobile-menu-link" onClick={() => setMenuOpen(false)} style={{ color: 'var(--color-text-tertiary)' }}>
+                <button onClick={logout} className="mobile-menu-link w-full text-left bg-transparent border-none p-0" style={{ color: 'var(--color-text-tertiary)' }}>
                   Sign Out
-                </Link>
+                </button>
               </div>
             </motion.div>
           </>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const NUTRITION_LABELS = [
   'Protein', 'Fiber', 'Omega-3', 'Iron',
@@ -7,6 +7,8 @@ const NUTRITION_LABELS = [
 
 export default function DNAParticleSystem({ className = '' }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const isVisible = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -46,6 +48,16 @@ export default function DNAParticleSystem({ className = '' }) {
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        isVisible.current = entry.isIntersecting;
+      });
+    }, { threshold: 0.1 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
 
     function resize() {
       const parent = canvas.parentElement;
@@ -280,32 +292,33 @@ export default function DNAParticleSystem({ className = '' }) {
       for (let i = 0; i < ambientParticles.length; i++) ambientParticles[i].draw(ctx);
     }
 
-    function loop() {
-      ctx.clearRect(0, 0, width, height);
-      rotationAngle += ROTATION_SPEED;
 
-      for (let i = 0; i < nodes.length; i++) nodes[i].update(rotationAngle);
-      for (let i = 0; i < ambientParticles.length; i++) ambientParticles[i].update(rotationAngle);
-
-      drawSystem();
-      
-      animationFrameId = requestAnimationFrame(loop);
+    function optimizedLoop() {
+        if (isVisible.current) {
+            ctx.clearRect(0, 0, width, height);
+            rotationAngle += ROTATION_SPEED;
+            for (let i = 0; i < nodes.length; i++) nodes[i].update(rotationAngle);
+            for (let i = 0; i < ambientParticles.length; i++) ambientParticles[i].update(rotationAngle);
+            drawSystem();
+        }
+        animationFrameId = requestAnimationFrame(optimizedLoop);
     }
 
     window.addEventListener('resize', resize);
     resize();
-    loop();
+    optimizedLoop();
 
     return () => {
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
-    <div className={`absolute inset-0 z-0 pointer-events-none ${className}`} style={{ width: '100%', height: '100%' }}>
+    <div ref={containerRef} className={`absolute inset-0 z-0 pointer-events-none ${className}`} style={{ width: '100%', height: '100%' }}>
       <canvas 
         ref={canvasRef} 
         style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}

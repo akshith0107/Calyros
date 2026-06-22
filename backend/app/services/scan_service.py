@@ -77,19 +77,31 @@ class ScanService:
             db_time_ms_1 = (time.time() - db_start_1) * 1000
             scan_id = result_payload["scan_id"]
             
-            # STAGE 3: DETERMINISTIC ANALYSIS
+            # STAGE 3: PARALLEL DETERMINISTIC ANALYSIS & RECOMMENDATIONS
             from app.services.scoring_service import scoring_service
+            from app.services.recommendation_service import recommendation_service
+            from app.services.alternatives_service import alternatives_service
+            
             scoring_start_ts = ts()
             scoring_start = time.time()
-            score_response = scoring_service.calculate_score(
-                db=db, 
-                scan_id=scan_id, 
-                user_id=user_id,
-                scan_history=result_payload["scan_history"],
-                product=result_payload["product"],
-                facts=result_payload["nutrition_facts"],
-                ingredients=result_payload["ingredients"]
+            
+            async def run_scoring():
+                return scoring_service.calculate_score(
+                    db=db, 
+                    scan_id=scan_id, 
+                    user_id=user_id,
+                    scan_history=result_payload["scan_history"],
+                    product=result_payload["product"],
+                    facts=result_payload["nutrition_facts"],
+                    ingredients=result_payload["ingredients"]
+                )
+
+            score_response, _, _ = await asyncio.gather(
+                run_scoring(),
+                recommendation_service.generate_recommendation(db, scan_id, user_id),
+                alternatives_service.get_alternatives(db, scan_id, user_id)
             )
+            
             scoring_end = time.time()
             scoring_end_ts = ts()
             scoring_duration_ms = (scoring_end - scoring_start) * 1000

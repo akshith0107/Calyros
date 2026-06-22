@@ -58,8 +58,7 @@ Return ONLY valid JSON exactly matching this schema:
   },
   "ingredients": [],
   "allergens": [],
-  "food_additives": [],
-  "raw_text": ""
+  "food_additives": []
 }
 
 Rules:

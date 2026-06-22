@@ -79,53 +79,38 @@ class AlternativesService:
             "key_findings": analysis_json.get("key_findings", []),
         }
 
-        prompt = f"""You are the Calyros AI Alternatives Engine. The user just scanned a product with a health score of {scan_context['health_score']}. 
-Your job is to suggest 3 healthier, realistic alternatives tailored to their goals.
+        # Deterministic Rule-Based Alternative Generation
+        health_goal = profile_context.get("health_goal", "General Wellness")
+        if not health_goal:
+            health_goal = "General Wellness"
+            
+        health_goal = str(health_goal).lower()
+        
+        # Base generic alternatives based on goal
+        if "weight" in health_goal or "loss" in health_goal:
+            alt1 = {"name": "Low-Calorie Variant of " + product_name, "category": "Similar Product Alternative", "reason": "Fewer calories and less sugar.", "benefits": ["Reduced Calories", "Less Sugar"], "expected_improvement": "Helps maintain a caloric deficit.", "goal_alignment": "Supports weight loss by reducing empty calories."}
+            alt2 = {"name": "Greek Yogurt or Protein-Rich Snack", "category": "Higher Quality Alternative", "reason": "Higher protein promotes satiety.", "benefits": ["High Protein", "Filling"], "expected_improvement": "Keeps you full longer, reducing overall intake.", "goal_alignment": "Improves macronutrient ratio for weight management."}
+            alt3 = {"name": "Fresh Apple with Almonds", "category": "Whole Food Alternative", "reason": "Natural fiber and healthy fats.", "benefits": ["High Fiber", "Micronutrients"], "expected_improvement": "Provides steady energy without insulin spikes.", "goal_alignment": "Whole foods support sustainable weight loss."}
+        elif "muscle" in health_goal or "gain" in health_goal:
+            alt1 = {"name": "High-Protein Variant of " + product_name, "category": "Similar Product Alternative", "reason": "More protein per serving.", "benefits": ["More Protein", "Muscle Repair"], "expected_improvement": "Provides more building blocks for muscle.", "goal_alignment": "Directly supports muscle protein synthesis."}
+            alt2 = {"name": "Whey or Plant Protein Isolate", "category": "Higher Quality Alternative", "reason": "Optimized amino acid profile.", "benefits": ["High Bioavailability", "Fast Absorbing"], "expected_improvement": "Maximizes recovery post-workout.", "goal_alignment": "Essential for muscle hypertrophy."}
+            alt3 = {"name": "Chicken Breast or Eggs", "category": "Whole Food Alternative", "reason": "Complete protein source from whole foods.", "benefits": ["Complete Amino Acids", "Satiety"], "expected_improvement": "Provides high-quality whole-food protein.", "goal_alignment": "The gold standard for muscle gain."}
+        elif "heart" in health_goal or "cardio" in health_goal:
+            alt1 = {"name": "Low-Sodium Variant of " + product_name, "category": "Similar Product Alternative", "reason": "Less sodium reduces blood pressure strain.", "benefits": ["Low Sodium", "Heart Safe"], "expected_improvement": "Reduces cardiovascular stress.", "goal_alignment": "Directly supports healthy blood pressure."}
+            alt2 = {"name": "Oat-Based Alternative", "category": "Higher Quality Alternative", "reason": "Beta-glucans help lower cholesterol.", "benefits": ["Heart Healthy Fiber", "Low Saturated Fat"], "expected_improvement": "Actively improves lipid profile.", "goal_alignment": "Addresses cholesterol and heart health."}
+            alt3 = {"name": "Walnuts or Chia Seeds", "category": "Whole Food Alternative", "reason": "Rich in Omega-3 fatty acids.", "benefits": ["Omega-3s", "Anti-inflammatory"], "expected_improvement": "Reduces inflammation and supports heart rhythm.", "goal_alignment": "Clinically proven to support heart health."}
+        elif "diabet" in health_goal or "sugar" in health_goal:
+            alt1 = {"name": "Zero-Sugar Variant of " + product_name, "category": "Similar Product Alternative", "reason": "No added sugar minimizes insulin spikes.", "benefits": ["No Sugar Crash", "Stable Energy"], "expected_improvement": "Prevents rapid blood glucose elevation.", "goal_alignment": "Crucial for glycemic control."}
+            alt2 = {"name": "High-Fiber Grain Alternative", "category": "Higher Quality Alternative", "reason": "Fiber slows glucose absorption.", "benefits": ["Slow Digestion", "Satiety"], "expected_improvement": "Provides a steadier, slower release of energy.", "goal_alignment": "Improves insulin sensitivity."}
+            alt3 = {"name": "Berries and Nuts", "category": "Whole Food Alternative", "reason": "Low glycemic index with high nutrients.", "benefits": ["Low GI", "Antioxidants"], "expected_improvement": "Satisfies cravings without spiking blood sugar.", "goal_alignment": "Ideal snack for diabetes management."}
+        else:
+            alt1 = {"name": "Organic/Natural Variant of " + product_name, "category": "Similar Product Alternative", "reason": "Fewer artificial additives.", "benefits": ["Cleaner Ingredients", "Fewer Chemicals"], "expected_improvement": "Reduces intake of ultra-processed compounds.", "goal_alignment": "Supports overall clean eating."}
+            alt2 = {"name": "Artisan/Minimal Ingredient Alternative", "category": "Higher Quality Alternative", "reason": "Simpler, more recognizable ingredients.", "benefits": ["Transparent Sourcing", "Better Digestion"], "expected_improvement": "Easier for the body to process.", "goal_alignment": "Aligns with a holistic approach to wellness."}
+            alt3 = {"name": "Mixed Veggies or Mixed Fruit", "category": "Whole Food Alternative", "reason": "Maximum natural nutrition.", "benefits": ["Vitamins & Minerals", "Fiber"], "expected_improvement": "Provides unadulterated natural nutrition.", "goal_alignment": "The foundation of general wellness."}
 
-USER PROFILE:
-{json.dumps(profile_context, indent=2)}
-
-SCANNED PRODUCT: {product_name}
-{json.dumps(scan_context, indent=2)}
-
-LOGIC RULES:
-- Weight Loss: Suggest alternatives with lower sugar, higher fiber, and less processing.
-- Muscle Gain: Suggest alternatives with higher protein density and better protein sources.
-- Heart Health: Suggest alternatives with lower sodium and better fat profiles.
-- Diabetes: Suggest alternatives with lower added sugar and glycemic load.
-- General Wellness: Suggest whole-food alternatives and less processed options.
-- Allergy Safety: NEVER suggest products containing the user's allergens ({', '.join(extracted_allergies) if extracted_allergies else 'None'}).
-
-CRITICAL INSTRUCTION:
-Provide exactly 3 alternatives.
-Alternative 1 MUST be a "Similar Product Alternative" (e.g., Natural Peanut Butter instead of Nutella).
-Alternative 2 MUST be a "Higher Quality Alternative" (e.g., Almond Butter instead of Nutella).
-Alternative 3 MUST be a "Whole Food Alternative" (e.g., Whole Almonds instead of Nutella).
-
-Output strictly valid JSON matching this exact schema:
-{{
-  "alternatives": [
-    {{
-      "name": "Alternative Name",
-      "category": "Similar Product Alternative | Higher Quality Alternative | Whole Food Alternative",
-      "reason": "Why it is better based on the user's goal.",
-      "benefits": ["Benefit 1", "Benefit 2"],
-      "expected_improvement": "A brief sentence on the expected improvement over the scanned product.",
-      "goal_alignment": "How this aligns with the user's specific health goal."
-    }}
-  ]
-}}
-"""
-
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0.2
-        )
-
-        content = response.choices[0].message.content
-        parsed = json.loads(content)
+        parsed = {
+            "alternatives": [alt1, alt2, alt3]
+        }
         
         # Save back to analysis_json
         analysis_json["alternatives"] = parsed

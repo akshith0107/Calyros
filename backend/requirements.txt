@@ -7,14 +7,13 @@ redis
 python-dotenv
 pydantic
 pydantic-settings
-pydantic[email]
+email-validator
 python-jose
 passlib[bcrypt]
 python-multipart
 supabase
 httpx
-pillow
 groq
 google-genai
-slowapi
-sentry-sdkfpdf2
+sentry-sdk
+fpdf2

@@ -140,16 +140,20 @@ class ChatService:
         extracted = scan.extracted_json if scan.extracted_json else {}
         
         scan_context = json.dumps({
+            "product_name": scan.product_name or "Unknown Product",
+            "nutrition_facts": extracted.get("nutrition_facts", {}),
+            "ingredients": extracted.get("ingredients", []),
+            "allergens": extracted.get("allergens", []),
+            "processing_assessment": analysis.get("processing_assessment", "Unknown"),
+            "personalized_analysis": analysis.get("personalized_analysis", ""),
+            "user_bmi_data": analysis.get("bmi_status", {}),
             "score": analysis.get("score") or analysis.get("overall_score"),
             "classification": analysis.get("classification"),
             "key_findings": analysis.get("key_findings", []),
-            "ingredients": extracted.get("ingredients", []),
-            "allergens": extracted.get("allergens", []),
             "vitamins": extracted.get("vitamins", []),
             "minerals": extracted.get("minerals", []),
             "concerns": analysis.get("concerns", []),
             "recommendations": analysis.get("recommendations", []),
-            "personalized_analysis": analysis.get("personalized_analysis", ""),
             "alternatives": analysis.get("alternatives", [])
         }, indent=2)
 
@@ -163,11 +167,13 @@ class ChatService:
             "2. The scanned product.\n"
             "3. The user's health profile.\n"
             "4. The nutrition facts.\n\n"
-            "Never provide generic nutrition advice. Reference actual nutrition values whenever available.\n"
-            "If user asks 'Can I eat this?', answer specifically about the scanned product.\n"
-            "If user asks 'Is this good for weight loss?', evaluate using calories, sugar, protein, fiber from the scanned product.\n"
-            "If user asks follow-up questions, use scan context before giving general advice.\n"
-            "If user asks 'What should I eat instead?' or for alternatives, ALWAYS use the generated alternatives provided in the context.\n\n"
+            "CRITICAL RULES:\n"
+            "- You ALREADY HAVE the nutrition facts, ingredients, and profile. NEVER respond with 'I don't have the nutrition facts' or ask the user to provide them.\n"
+            "- Never provide generic nutrition advice. Reference actual nutrition values whenever available.\n"
+            "- If user asks 'Can I eat this?', answer specifically about the scanned product.\n"
+            "- If user asks 'Is this good for weight loss?' or 'Is this good for muscle gain?', evaluate using calories, sugar, protein, fiber from the scanned product against their BMI and goals.\n"
+            "- If user asks follow-up questions, use scan context before giving general advice.\n"
+            "- If user asks 'What should I eat instead?' or for alternatives, ALWAYS use the generated alternatives provided in the context.\n\n"
             f"USER PROFILE:\n{profile_context}\n\n"
             f"SCANNED PRODUCT CONTEXT:\n{scan_context}"
         )
@@ -263,15 +269,16 @@ class ChatService:
             extracted = scan.extracted_json if scan.extracted_json else {}
             facts = extracted.get("nutrition_facts", {})
             return {
+                "product_name": scan.product_name or "Unknown Product",
                 "health_score": analysis.get("score") or analysis.get("overall_score"),
-                "calories": facts.get("calories"),
-                "protein": facts.get("protein"),
-                "sugar": facts.get("sugar"),
-                "fiber": facts.get("fiber"),
-                "sodium": facts.get("sodium"),
+                "nutrition_facts": facts,
                 "ingredients": extracted.get("ingredients", []),
+                "allergens": extracted.get("allergens", []),
+                "processing_assessment": analysis.get("processing_assessment", "Unknown"),
                 "key_findings": analysis.get("key_findings", []),
-                "personalized_analysis": analysis.get("personalized_analysis", "")
+                "personalized_analysis": analysis.get("personalized_analysis", ""),
+                "concerns": analysis.get("concerns", []),
+                "recommendations": analysis.get("recommendations", [])
             }
 
         scan_1_context = format_scan(scan_1)
@@ -284,7 +291,9 @@ class ChatService:
             "2. The two scanned products.\n"
             "3. The user's health profile.\n"
             "4. The nutrition facts.\n\n"
-            "Never provide generic nutrition advice. Reference actual nutrition values whenever available.\n"
+            "CRITICAL RULES:\n"
+            "- You ALREADY HAVE the nutrition facts, ingredients, and profile for both products. NEVER respond with 'I don't have the nutrition facts' or ask the user to provide them.\n"
+            "- Never provide generic nutrition advice. Reference actual nutrition values whenever available.\n"
             f"USER PROFILE:\n{profile_context}\n\n"
             f"PRODUCT 1 ({product_1_name}):\n{json.dumps(scan_1_context, indent=2)}\n\n"
             f"PRODUCT 2 ({product_2_name}):\n{json.dumps(scan_2_context, indent=2)}"

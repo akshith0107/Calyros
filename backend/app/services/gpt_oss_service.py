@@ -7,16 +7,16 @@ logger = logging.getLogger(__name__)
 
 class GptOssService:
     def __init__(self):
-        # Using Scout key for legacy async recommendation endpoints
-        self.client = AsyncGroq(api_key=settings.GROQ_API_KEY_SCOUT)
-        self.model = settings.GROQ_MODEL_SCOUT
+        # Using unified Groq Reasoning Model
+        self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        self.model = settings.GROQ_REASONING_MODEL
         
     async def _generate_json(self, system_prompt: str, user_prompt: str) -> dict:
         """
         Base method to call Groq API and enforce JSON response.
         """
-        if not settings.GROQ_API_KEY_SCOUT or settings.GROQ_API_KEY_SCOUT == "dummy":
-            raise ValueError("GROQ_API_KEY_SCOUT is missing or invalid. AI inference cannot proceed.")
+        if not settings.GROQ_API_KEY or settings.GROQ_API_KEY == "dummy":
+            raise ValueError("GROQ_API_KEY is missing or invalid. AI inference cannot proceed.")
 
         try:
             response = await self.client.chat.completions.create(

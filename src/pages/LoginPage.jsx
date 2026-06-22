@@ -43,7 +43,21 @@ export default function LoginPage() {
         await apiClient.post('/auth/register', { email, password, full_name: fullName });
       }
 
-      const resp = await apiClient.post('/auth/login', { email, password });
+      console.log("Login started");
+      console.log("API Base URL:", apiClient.defaults.baseURL);
+      console.log("Payload:", { email });
+      
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+      
+      const resp = await apiClient.post('/auth/login', formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      });
+      console.log("Response:", resp);
+      
       if (resp.data.access_token) {
         login(resp.data.access_token);
         
@@ -122,11 +136,27 @@ export default function LoginPage() {
             navigate('/dashboard'); // fallback
           }
         }
+      } else {
+        setError('Login failed. No access token received.');
+        setIsLoading(false);
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || "Failed to authenticate";
-      setError(errorMsg);
-    } finally {
+      console.error('Authentication Error:', err);
+      if (err.response && err.response.data) {
+        // Extract exact detail message if provided by FastAPI
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string') {
+          setError(detail);
+        } else if (Array.isArray(detail)) {
+          setError(detail[0]?.msg || 'Validation error');
+        } else if (err.response.data.error?.message) {
+          setError(err.response.data.error.message);
+        } else {
+          setError(err.response.data.message || 'Failed to authenticate');
+        }
+      } else {
+        setError('Failed to authenticate. Server might be unreachable.');
+      }
       setIsLoading(false);
     }
   };

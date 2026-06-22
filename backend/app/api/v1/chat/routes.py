@@ -64,3 +64,54 @@ def get_chat_history(
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+from pydantic import BaseModel
+class CompareChatRequest(BaseModel):
+    scan_id_1: UUID
+    scan_id_2: UUID
+    message: str
+
+@router.post("/compare_stream")
+async def send_compare_message(
+    payload: CompareChatRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        generator = await chat_service.send_compare_message_stream(
+            db=db,
+            user_id=current_user.id,
+            scan_id_1=payload.scan_id_1,
+            scan_id_2=payload.scan_id_2,
+            message=payload.message
+        )
+        return StreamingResponse(generator, media_type="text/event-stream")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class GlobalChatRequest(BaseModel):
+    message: str
+
+@router.post("/global_stream")
+async def send_global_message(
+    payload: GlobalChatRequest = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        generator = await chat_service.send_global_message_stream(
+            db=db,
+            user_id=current_user.id,
+            message=payload.message
+        )
+        return StreamingResponse(generator, media_type="text/event-stream")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

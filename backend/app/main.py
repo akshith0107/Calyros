@@ -48,12 +48,9 @@ async def lifespan(app: FastAPI):
         raise e
         
     # Log Pipeline Configuration
-    logger.info("✓ Deterministic Pipeline Enabled")
-    logger.info(f"  - Stage 0: EasyOCR Engine Loaded")
-    logger.info(f"  - Stage 1: Scout Extraction Model Loaded ({settings.GROQ_MODEL_SCOUT})")
-    logger.info(f"  - Stage 2: NutritionScoringService Loaded (Deterministic Engine)")
-    if settings.GROQ_API_KEY_BACKUP and settings.GROQ_API_KEY_BACKUP != "dummy":
-        logger.info("  - Extraction Fallback Support Enabled")
+    logger.info("✓ AI Pipeline Enabled")
+    logger.info(f"  - Stage 1: Vision Extraction Model Loaded ({settings.GEMINI_MODEL})")
+    logger.info(f"  - Stage 2: Reasoning Model Loaded ({settings.GROQ_REASONING_MODEL})")
         
     # Connect to Redis
     await redis_client.connect()
@@ -76,9 +73,10 @@ app.add_middleware(RateLimitMiddleware)
 app.add_middleware(StructuredLogMiddleware)
 
 # CORS Middleware
+origins = [origin.strip() for origin in settings.BACKEND_CORS_ORIGINS.split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

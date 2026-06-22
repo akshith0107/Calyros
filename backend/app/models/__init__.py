@@ -16,6 +16,7 @@ from .ai_recommendation import AIRecommendation
 from .dietary_preference import DietaryPreference
 from .chat_session import ChatSession
 from .chat_message import ChatMessage
+from .user_analytics import BMIHistory, NutritionTargets, UserGoals
 
 # Explicitly export the classes
 __all__ = [

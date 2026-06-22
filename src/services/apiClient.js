@@ -7,6 +7,8 @@ const apiClient = axios.create({
   }
 });
 
+console.log("Current API URL:", apiClient.defaults.baseURL);
+
 // Interceptor to attach JWT token
 apiClient.interceptors.request.use(
   (config) => {
@@ -21,10 +23,15 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Interceptor to handle 401s (token refresh could go here)
+// Interceptor to handle 401s and log detailed errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log detailed backend error for debugging
+    console.error("API Error Response:", error.response?.data || error.message);
+    console.error("API Error Status:", error.response?.status);
+    console.error("API Request URL:", error.config?.url);
+    
     if (error.response?.status === 401) {
       // Handle unauthorized (e.g., redirect to login)
       localStorage.removeItem('access_token');

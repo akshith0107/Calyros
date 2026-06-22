@@ -28,6 +28,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Scan = lazy(() => import('./pages/Scan'));
 const Chat = lazy(() => import('./pages/Chat'));
 const History = lazy(() => import('./pages/History'));
+const CompareProducts = lazy(() => import('./pages/CompareProducts'));
+const InsightsDashboard = lazy(() => import('./pages/InsightsDashboard'));
 const Recommendations = lazy(() => import('./pages/Recommendations'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -60,6 +62,8 @@ function AnimatedRoutes() {
               <Route path="/scan" element={<Scan />} />
               <Route path="/chat/:scanId" element={<Chat />} />
               <Route path="/history" element={<History />} />
+              <Route path="/compare" element={<CompareProducts />} />
+              <Route path="/insights" element={<InsightsDashboard />} />
               <Route path="/recommendations" element={<Recommendations />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />

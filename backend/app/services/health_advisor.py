@@ -8,15 +8,13 @@ class HealthAdvisor:
         with open(prompt_path, 'r') as f:
             self.system_prompt = f.read()
 
-    async def generate_advice(self, profile: dict, facts: dict, ingredients: list[str], score_data: dict) -> dict:
+    async def generate_advice(self, profile: dict, extracted_data: dict) -> dict:
         """
-        Generates the personalized health advice using Groq.
+        Generates the personalized health advice and scoring using Groq.
         """
         payload = {
             "user_profile": profile,
-            "nutrition_facts": facts,
-            "ingredients": ingredients,
-            "score_engine_output": score_data
+            "extracted_nutrition_data": extracted_data
         }
         
         user_prompt = f"Analyze the following data and generate the JSON payload:\n\n{json.dumps(payload, indent=2, default=str)}"

@@ -16,7 +16,8 @@ export default function Profile() {
     height_cm: '',
     weight_kg: '',
     activity_level: 'SEDENTARY',
-    primary_goal: 'MAINTAIN',
+    health_goal: 'MAINTAIN',
+    diet_type: ''
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,7 +28,8 @@ export default function Profile() {
         height_cm: profileObj.profile.height_cm || '',
         weight_kg: profileObj.profile.weight_kg || '',
         activity_level: profileObj.profile.activity_level || 'SEDENTARY',
-        primary_goal: profileObj.profile.primary_goal || 'MAINTAIN',
+        health_goal: profileObj.profile.health_goal || 'MAINTAIN',
+        diet_type: profileObj.profile.diet_type || 'NONE'
       });
     }
   }, [profileObj, isEditing]);
@@ -37,11 +39,12 @@ export default function Profile() {
     try {
       const payload = {
         profile: {
-          age: parseInt(formData.age),
-          height_cm: parseFloat(formData.height_cm),
-          weight_kg: parseFloat(formData.weight_kg),
+          age: parseInt(formData.age) || undefined,
+          height_cm: parseFloat(formData.height_cm) || undefined,
+          weight_kg: parseFloat(formData.weight_kg) || undefined,
           activity_level: formData.activity_level,
-          primary_goal: formData.primary_goal,
+          health_goal: formData.health_goal,
+          diet_type: formData.diet_type !== 'NONE' ? formData.diet_type : null
         }
       };
       
@@ -73,13 +76,13 @@ export default function Profile() {
             variant={isEditing ? 'secondary' : 'primary'} 
             onClick={() => {
               if (isEditing) {
-                // Cancel
                 setFormData({
                   age: profileObj?.profile?.age || '',
                   height_cm: profileObj?.profile?.height_cm || '',
                   weight_kg: profileObj?.profile?.weight_kg || '',
                   activity_level: profileObj?.profile?.activity_level || 'SEDENTARY',
-                  primary_goal: profileObj?.profile?.primary_goal || 'MAINTAIN',
+                  health_goal: profileObj?.profile?.health_goal || 'MAINTAIN',
+                  diet_type: profileObj?.profile?.diet_type || 'NONE'
                 });
               }
               setIsEditing(!isEditing);
@@ -159,22 +162,66 @@ export default function Profile() {
                   )}
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm text-gray-400 mb-2">Primary Goal</label>
+                  <label className="block text-sm text-gray-400 mb-2">Health Goal</label>
                   {isEditing ? (
                     <select 
                       className="w-full bg-[#141414] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                      value={formData.primary_goal}
-                      onChange={(e) => setFormData({...formData, primary_goal: e.target.value})}
+                      value={formData.health_goal}
+                      onChange={(e) => setFormData({...formData, health_goal: e.target.value})}
                     >
-                      <option value="LOSE_WEIGHT">Lose Weight</option>
-                      <option value="MAINTAIN">Maintain</option>
-                      <option value="BUILD_MUSCLE">Build Muscle</option>
-                      <option value="IMPROVE_HEALTH">Improve Health</option>
+                      <option value="lose-weight">Lose Weight</option>
+                      <option value="maintain-weight">Maintain Weight</option>
+                      <option value="build-muscle">Build Muscle</option>
+                      <option value="improve-health">Improve Health</option>
                     </select>
                   ) : (
-                    <div className="text-xl text-white font-medium capitalize">{formData.primary_goal.toLowerCase().replace('_', ' ')}</div>
+                    <div className="text-xl text-white font-medium capitalize">{formData.health_goal.replace('-', ' ')}</div>
                   )}
                 </div>
+
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-400 mb-2">Diet Type</label>
+                  {isEditing ? (
+                    <select 
+                      className="w-full bg-[#141414] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                      value={formData.diet_type}
+                      onChange={(e) => setFormData({...formData, diet_type: e.target.value})}
+                    >
+                      <option value="NONE">No specific diet</option>
+                      <option value="vegan">Vegan</option>
+                      <option value="vegetarian">Vegetarian</option>
+                      <option value="keto">Keto</option>
+                      <option value="halal">Halal</option>
+                    </select>
+                  ) : (
+                    <div className="text-xl text-white font-medium capitalize">{formData.diet_type === 'NONE' ? 'No specific diet' : formData.diet_type}</div>
+                  )}
+                </div>
+
+                {!isEditing && profileObj && (
+                  <>
+                    <div className="col-span-2">
+                      <label className="block text-sm text-gray-400 mb-2">Allergies</label>
+                      <div className="flex flex-wrap gap-2">
+                        {profileObj.allergies ? Object.entries(profileObj.allergies)
+                          .filter(([k, v]) => v === true)
+                          .map(([k]) => <span key={k} className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 rounded-full text-xs uppercase font-bold tracking-wider">{k}</span>)
+                          : <span className="text-gray-500 text-sm">None reported</span>}
+                        {profileObj.allergies && Object.entries(profileObj.allergies).filter(([k, v]) => v === true).length === 0 && <span className="text-gray-500 text-sm">None reported</span>}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm text-gray-400 mb-2">Medical Conditions</label>
+                      <div className="flex flex-wrap gap-2">
+                        {profileObj.health_conditions ? Object.entries(profileObj.health_conditions)
+                          .filter(([k, v]) => v === true)
+                          .map(([k]) => <span key={k} className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs uppercase font-bold tracking-wider">{k.replace('_', ' ')}</span>)
+                          : <span className="text-gray-500 text-sm">None reported</span>}
+                        {profileObj.health_conditions && Object.entries(profileObj.health_conditions).filter(([k, v]) => v === true).length === 0 && <span className="text-gray-500 text-sm">None reported</span>}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {isEditing && (

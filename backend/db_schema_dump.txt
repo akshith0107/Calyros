@@ -1,0 +1,180 @@
+Table: ingredients
+  - ingredient_name (VARCHAR) PK:False FK:set()
+  - category (VARCHAR) PK:False FK:set()
+  - risk_level (VARCHAR) PK:False FK:set()
+  - description (VARCHAR) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: products
+  - product_name (VARCHAR) PK:False FK:set()
+  - brand (VARCHAR) PK:False FK:set()
+  - category (VARCHAR) PK:False FK:set()
+  - barcode (VARCHAR) PK:False FK:set()
+  - image_url (VARCHAR) PK:False FK:set()
+  - allergens (JSON) PK:False FK:set()
+  - additives (JSON) PK:False FK:set()
+  - claims (JSON) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: users
+  - email (VARCHAR) PK:False FK:set()
+  - full_name (VARCHAR) PK:False FK:set()
+  - password_hash (VARCHAR) PK:False FK:set()
+  - is_active (BOOLEAN) PK:False FK:set()
+  - role (VARCHAR) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: allergies
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - milk (BOOLEAN) PK:False FK:set()
+  - gluten (BOOLEAN) PK:False FK:set()
+  - soy (BOOLEAN) PK:False FK:set()
+  - nuts (BOOLEAN) PK:False FK:set()
+  - eggs (BOOLEAN) PK:False FK:set()
+  - seafood (BOOLEAN) PK:False FK:set()
+  - sesame (BOOLEAN) PK:False FK:set()
+  - shellfish (BOOLEAN) PK:False FK:set()
+  - other_allergies (VARCHAR) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: dietary_preferences
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - vegetarian (BOOLEAN) PK:False FK:set()
+  - vegan (BOOLEAN) PK:False FK:set()
+  - jain (BOOLEAN) PK:False FK:set()
+  - halal (BOOLEAN) PK:False FK:set()
+  - keto (BOOLEAN) PK:False FK:set()
+  - high_protein (BOOLEAN) PK:False FK:set()
+  - weight_loss (BOOLEAN) PK:False FK:set()
+  - muscle_gain (BOOLEAN) PK:False FK:set()
+  - general_fitness (BOOLEAN) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: health_conditions
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - diabetes (BOOLEAN) PK:False FK:set()
+  - hypertension (BOOLEAN) PK:False FK:set()
+  - cholesterol (BOOLEAN) PK:False FK:set()
+  - kidney_disease (BOOLEAN) PK:False FK:set()
+  - liver_disease (BOOLEAN) PK:False FK:set()
+  - thyroid_disorder (BOOLEAN) PK:False FK:set()
+  - heart_disease (BOOLEAN) PK:False FK:set()
+  - obesity (BOOLEAN) PK:False FK:set()
+  - pcos (BOOLEAN) PK:False FK:set()
+  - other_conditions (VARCHAR) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: nutrition_facts
+  - product_id (UUID) PK:False FK:{ForeignKey('products.id')}
+  - serving_size (VARCHAR) PK:False FK:set()
+  - calories (FLOAT) PK:False FK:set()
+  - protein (FLOAT) PK:False FK:set()
+  - carbohydrates (FLOAT) PK:False FK:set()
+  - sugar (FLOAT) PK:False FK:set()
+  - added_sugar (FLOAT) PK:False FK:set()
+  - fiber (FLOAT) PK:False FK:set()
+  - sodium (FLOAT) PK:False FK:set()
+  - total_fat (FLOAT) PK:False FK:set()
+  - saturated_fat (FLOAT) PK:False FK:set()
+  - trans_fat (FLOAT) PK:False FK:set()
+  - dynamic_facts (JSON) PK:False FK:set()
+  - vitamins (JSON) PK:False FK:set()
+  - minerals (JSON) PK:False FK:set()
+  - amino_acids (JSON) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: product_ingredients
+  - product_id (UUID) PK:True FK:{ForeignKey('products.id')}
+  - ingredient_id (UUID) PK:True FK:{ForeignKey('ingredients.id')}
+
+Table: scan_history
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - product_id (UUID) PK:False FK:{ForeignKey('products.id')}
+  - image_url (VARCHAR) PK:False FK:set()
+  - overall_score (FLOAT) PK:False FK:set()
+  - raw_ocr_text (VARCHAR) PK:False FK:set()
+  - extracted_json (JSONB) PK:False FK:set()
+  - analysis_json (JSONB) PK:False FK:set()
+  - ocr_time_ms (FLOAT) PK:False FK:set()
+  - extraction_time_ms (FLOAT) PK:False FK:set()
+  - analysis_time_ms (FLOAT) PK:False FK:set()
+  - scanned_at (DATETIME) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: user_profiles
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - age (INTEGER) PK:False FK:set()
+  - gender (VARCHAR) PK:False FK:set()
+  - height_cm (FLOAT) PK:False FK:set()
+  - weight_kg (FLOAT) PK:False FK:set()
+  - activity_level (VARCHAR) PK:False FK:set()
+  - health_goal (VARCHAR) PK:False FK:set()
+  - diet_type (VARCHAR) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: ai_recommendations
+  - scan_id (UUID) PK:False FK:{ForeignKey('scan_history.id')}
+  - health_score (INTEGER) PK:False FK:set()
+  - summary (TEXT) PK:False FK:set()
+  - strengths (JSONB) PK:False FK:set()
+  - concerns (JSONB) PK:False FK:set()
+  - weight_loss (TEXT) PK:False FK:set()
+  - muscle_gain (TEXT) PK:False FK:set()
+  - diabetes (TEXT) PK:False FK:set()
+  - hypertension (TEXT) PK:False FK:set()
+  - heart_health (TEXT) PK:False FK:set()
+  - recommendations (JSONB) PK:False FK:set()
+  - healthier_alternatives (JSONB) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: chat_sessions
+  - id (UUID) PK:True FK:set()
+  - user_id (UUID) PK:False FK:{ForeignKey('users.id')}
+  - scan_id (UUID) PK:False FK:{ForeignKey('scan_history.id')}
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: food_scores
+  - scan_id (UUID) PK:False FK:{ForeignKey('scan_history.id')}
+  - nutrition_score (FLOAT) PK:False FK:set()
+  - ingredient_score (FLOAT) PK:False FK:set()
+  - compatibility_score (FLOAT) PK:False FK:set()
+  - processing_score (FLOAT) PK:False FK:set()
+  - overall_score (FLOAT) PK:False FK:set()
+  - classification (VARCHAR) PK:False FK:set()
+  - flags (JSONB) PK:False FK:set()
+  - warnings (JSONB) PK:False FK:set()
+  - nutrition_breakdown (JSONB) PK:False FK:set()
+  - score_breakdown (JSONB) PK:False FK:set()
+  - personalized_analysis (VARCHAR) PK:False FK:set()
+  - recommendations (JSONB) PK:False FK:set()
+  - id (UUID) PK:True FK:set()
+  - created_at (DATETIME) PK:False FK:set()
+  - updated_at (DATETIME) PK:False FK:set()
+
+Table: chat_messages
+  - id (UUID) PK:True FK:set()
+  - session_id (UUID) PK:False FK:{ForeignKey('chat_sessions.id')}
+  - role (VARCHAR(50)) PK:False FK:set()
+  - content (TEXT) PK:False FK:set()
+  - created_at (DATETIME) PK:False FK:set()

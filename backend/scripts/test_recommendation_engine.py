@@ -76,14 +76,23 @@ async def run_tests():
         rec1 = await recommendation_service.generate_recommendation(db, scan.id, user.id)
         
         print("\n--- Health Advisor Payload ---")
-        print(f"Summary: {rec1.health_summary}")
-        print(f"Positives: {rec1.positives}")
+        print(f"Health Score: {rec1.health_score}")
+        print(f"Summary: {rec1.summary}")
+        print(f"Strengths: {rec1.strengths}")
         print(f"Concerns: {rec1.concerns}")
-        print(f"Personalized: {rec1.ai_summary}")
+        print(f"Score Breakdown: {rec1.score_breakdown}")
+        print(f"Goal Compatibility: {rec1.goal_compatibility}")
+        print(f"Disease Compatibility: {rec1.disease_compatibility}")
+        print(f"Processing Level: {rec1.processing_level}")
+        print(f"Processing Reason: {rec1.processing_reason}")
         
-        print("\n--- Ingredient Explanations ---")
-        for i in rec1.ingredient_explanations:
-            print(f"- {i['name']} ({i['risk_level']}): {i['explanation']}")
+        print("\n--- Recommendations ---")
+        for r in rec1.recommendations:
+            print(f"- {r}")
+
+        print("\n--- Healthier Alternatives ---")
+        for a in rec1.healthier_alternatives:
+            print(f"- {a}")
             
         # 5. Check Redis Caching
         print("\nChecking Redis Cache for duplication prevention...")

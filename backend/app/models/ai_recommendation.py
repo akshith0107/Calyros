@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Text
+from sqlalchemy import Column, ForeignKey, String, Text, Integer
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
@@ -12,12 +12,23 @@ class AIRecommendation(Base, UUIDMixin, TimestampMixin):
 
     scan_id = Column(UUID(as_uuid=True), ForeignKey("scan_history.id", ondelete="CASCADE"), nullable=False, unique=True)
     
-    health_summary = Column(Text, nullable=True)
-    positives = Column(DbJSON, default=list)
+    health_score = Column(Integer, nullable=True)
+    summary = Column(Text, nullable=True)
+    strengths = Column(DbJSON, default=list)
     concerns = Column(DbJSON, default=list)
-    ingredient_explanations = Column(DbJSON, default=list)
-    alternatives = Column(DbJSON, default=list)
-    consumption_guidance = Column(String, nullable=True)
-    ai_summary = Column(Text, nullable=True)
+    weight_loss = Column(Text, nullable=True)
+    muscle_gain = Column(Text, nullable=True)
+    diabetes = Column(Text, nullable=True)
+    hypertension = Column(Text, nullable=True)
+    heart_health = Column(Text, nullable=True)
+    recommendations = Column(JSONB)  # array of strings
+    healthier_alternatives = Column(JSONB)  # array of objects
+    
+    # ADVANCED FIELDS (Phase 8)
+    goal_compatibility = Column(JSONB, nullable=True)  # dict
+    disease_compatibility = Column(JSONB, nullable=True) # dict
+    score_breakdown = Column(JSONB, nullable=True) # dict
+    processing_level = Column(String, nullable=True)
+    processing_reason = Column(String, nullable=True)
 
     scan = relationship("ScanHistory", back_populates="ai_recommendation")

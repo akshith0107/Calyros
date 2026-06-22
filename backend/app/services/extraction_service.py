@@ -2,101 +2,99 @@ import json
 import logging
 from typing import Dict, Any
 import time
-from groq import AsyncGroq
+from google import genai
+from google.genai import types
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 class ExtractionService:
     def __init__(self):
-        # We use Groq's fast inference for Llama 4 Scout
-        self.primary_key = settings.GROQ_API_KEY_SCOUT
-        self.backup_key = settings.GROQ_API_KEY_BACKUP
+        self.api_key = settings.GOOGLE_API_KEY
         
-        if not self.primary_key or self.primary_key == "dummy":
-            logger.warning("GROQ_API_KEY_SCOUT is missing. Extraction will fail if called.")
+        if not self.api_key or self.api_key == "dummy":
+            logger.warning("GOOGLE_API_KEY is missing. Extraction will fail if called.")
             self.client = None
         else:
-            self.client = AsyncGroq(api_key=self.primary_key)
+            self.client = genai.Client(api_key=self.api_key)
             
-        # Hardcoding the requested model from settings
-        self.model = settings.GROQ_MODEL_SCOUT
+        self.model = settings.GEMINI_MODEL
         
         self.system_prompt = """
-You are a highly precise data extraction assistant. 
-I will provide you with messy OCR text extracted from a product's nutrition label.
-Your job is to parse this text and return a STRICT JSON object matching the exact schema below.
+You are an advanced Nutrition Label OCR System.
 
-REQUIRED SCHEMA:
+Step 1:
+Extract all visible text from the nutrition label image.
+
+Step 2:
+Identify and extract:
+- Product Name
+- Brand Name
+- Serving Size
+- Calories
+- Macronutrients
+- Vitamins
+- Minerals
+- Ingredients (as a simple list of strings)
+- Allergens
+- Food Additives
+
+Return ONLY valid JSON exactly matching this schema:
 {
-  "product_name": "string (extract exactly as stated, or return null if not found)",
-  "serving_size": "string",
-  "ingredients": ["string", "string"],
-  "nutrition_facts": {"nutrient_name": "value with unit (e.g. '5g')"},
-  "vitamins": {"vitamin_name": "value with unit"},
-  "minerals": {"mineral_name": "value with unit"},
-  "amino_acids": {"acid_name": "value with unit"},
-  "allergens": ["string"],
-  "additives": ["string"],
-  "claims": ["string"]
+  "product_name": "",
+  "brand_name": "",
+  "serving_size": "",
+  "nutrition_facts": {
+    "calories": "",
+    "protein_g": "",
+    "fat_g": "",
+    "saturated_fat_g": "",
+    "trans_fat_g": "",
+    "carbohydrates_g": "",
+    "fiber_g": "",
+    "sugar_g": "",
+    "added_sugar_g": "",
+    "sodium_mg": ""
+  },
+  "ingredients": [],
+  "allergens": [],
+  "food_additives": [],
+  "raw_text": ""
 }
 
-RULES:
-1. Return ONLY the JSON object. Do not include markdown formatting like ```json.
-2. Extract EVERY visible nutrient, vitamin, mineral, and amino acid into its respective dictionary.
-3. For the values, include the unit (e.g., '10g', '50mg', '100% DV').
-4. If a category is entirely missing from the label, return an empty dictionary {} or empty array [].
-5. Look out for allergens (e.g., 'Contains Milk', 'Soy') and additives (e.g., 'Red 40', 'Sucralose').
-6. Extract marketing or health claims (e.g., 'Gluten Free', 'Non-GMO') into the claims array.
+Rules:
+- Extract information exactly as shown.
+- Do not hallucinate ingredients.
+- Return JSON only.
 """
 
-    async def extract_data(self, ocr_text: str) -> Dict[str, Any]:
+    async def extract_data(self, file_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
         """
-        Passes the OCR text to Llama 4 Scout to extract structured JSON.
+        Passes the image bytes to Gemini 2.5 Flash to extract structured JSON.
         """
         if not self.client:
-            raise ValueError("GROQ_API_KEY is invalid. Cannot perform extraction.")
+            raise ValueError("GOOGLE_API_KEY is invalid. Cannot perform extraction.")
 
-        logger.info("Stage 1: Starting Llama 4 Scout Extraction")
-        logger.debug(f"Input OCR Text Length: {len(ocr_text)}")
+        logger.info("Stage 1: Starting Gemini 2.5 Flash Extraction")
         
         start_time = time.time()
 
         try:
-            try:
-                response = await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": self.system_prompt},
-                        {"role": "user", "content": f"OCR TEXT:\n{ocr_text}"}
-                    ],
-                    response_format={"type": "json_object"},
-                    temperature=0.1
+            response = await self.client.aio.models.generate_content(
+                model=self.model,
+                contents=[
+                    self.system_prompt,
+                    types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+                ],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.1,
                 )
-            except Exception as initial_error:
-                # Basic check for rate limit or auth error
-                err_str = str(initial_error).lower()
-                if "rate limit" in err_str or "429" in err_str or "too many requests" in err_str:
-                    if self.backup_key and self.backup_key != "dummy":
-                        logger.warning("Stage 1 rate limited. Falling back to GROQ_API_KEY_BACKUP.")
-                        backup_client = AsyncGroq(api_key=self.backup_key)
-                        response = await backup_client.chat.completions.create(
-                            model=self.model,
-                            messages=[
-                                {"role": "system", "content": self.system_prompt},
-                                {"role": "user", "content": f"OCR TEXT:\n{ocr_text}"}
-                            ],
-                            response_format={"type": "json_object"},
-                            temperature=0.1
-                        )
-                    else:
-                        raise initial_error
-                else:
-                    raise initial_error
+            )
             
-            content = response.choices[0].message.content
+            content = response.text
             
-            # Groq JSON mode ensures valid JSON, but let's parse safely
+            # Parse JSON
             parsed_json = json.loads(content)
             
             duration = time.time() - start_time
@@ -107,6 +105,6 @@ RULES:
 
         except Exception as e:
             logger.error(f"Extraction Service Error: {str(e)}")
-            raise RuntimeError(f"Failed to extract structured data from OCR text: {e}") from e
+            raise RuntimeError(f"Failed to extract structured data from image: {e}") from e
 
 extraction_service = ExtractionService()

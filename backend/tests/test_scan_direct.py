@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app.core.database import SessionLocal
 from app.services.scan_service import scan_service
-from app.services.ocr_service import ocr_service
+from app.services.extraction_service import extraction_service
 from app.models.user import User
 from app.models.profile import UserProfile
 
@@ -23,11 +23,36 @@ async def main():
             
         user = db.query(User).filter(User.id == profile.user_id).first()
         
-        # Mock the OCR service to return a valid nutrition label string so it passes
-        original_extract = ocr_service.extract_text
+        # Mock the extraction service to return valid JSON
+        original_extract = extraction_service.extract_data
         async def mock_extract(*args, **kwargs):
-            return "Nutrition Facts\nCalories 250\nProtein 12g\nSugar 5g\nIngredients: Whey protein, cocoa, stevia, milk, soy."
-        ocr_service.extract_text = mock_extract
+            return {
+                "product_name": "Test Product",
+                "brand_name": "Test Brand",
+                "serving_size": "1 bar",
+                "nutrition_facts": {
+                    "calories": "250",
+                    "protein_g": "12",
+                    "sugar_g": "5",
+                    "added_sugar_g": "0",
+                    "fiber_g": "2",
+                    "sodium_mg": "150"
+                },
+                "ingredients": ["whey protein", "cocoa", "stevia", "milk", "soy", "maltodextrin"],
+                "allergens": ["milk", "soy"],
+                "beneficial_ingredients": [
+                    {"name": "whey protein", "benefit": "High quality protein"}
+                ],
+                "harmful_ingredients": [
+                    {"name": "maltodextrin", "category": "Carbohydrate", "reason": "High glycemic index"}
+                ],
+                "food_additives": [],
+                "preservatives": [],
+                "artificial_colors": [],
+                "artificial_sweeteners": ["stevia"],
+                "raw_text": "whey protein cocoa stevia milk soy maltodextrin"
+            }
+        extraction_service.extract_data = mock_extract
 
         print(f"Running scan test for user {user.id}...")
         

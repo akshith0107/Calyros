@@ -31,14 +31,24 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+from fastapi.security import OAuth2PasswordRequestForm
+from typing import Annotated
+
 @router.post("/login", response_model=Token)
-def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == login_data.email).first()
+def login(login_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    print("Login request received")
+    print(f"username: {login_data.username}")
+    print("Authenticating:", login_data.username)
+    
+    user = db.query(User).filter(User.email == login_data.username).first()
     if not user or not verify_password(login_data.password, user.password_hash):
+        print("Authentication failed: Incorrect email or password")
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
+        print("Authentication failed: Inactive user")
         raise HTTPException(status_code=400, detail="Inactive user")
 
+    print("Authentication successful")
     access_token = create_access_token(user.id, user.role)
     refresh_token = create_refresh_token(user.id, user.role)
 
@@ -46,7 +56,7 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "expires_in": settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
 @router.post("/refresh", response_model=Token)
@@ -65,7 +75,7 @@ async def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_
             raise credentials_exception
 
     try:
-        payload = jwt.decode(request.refresh_token, settings.REFRESH_SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(request.refresh_token, settings.REFRESH_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         user_id: str = payload.get("sub")
         role: str = payload.get("role")
         token_type: str = payload.get("type")
@@ -90,7 +100,7 @@ async def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_
         "access_token": access_token,
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
-        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "expires_in": settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
 
 @router.post("/logout")

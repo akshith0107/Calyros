@@ -15,6 +15,6 @@ supabase
 httpx
 pillow
 groq
-easyocr
+google-genai
 slowapi
-sentry-sdk
+sentry-sdkfpdf2

@@ -7,6 +7,8 @@ const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Scan Product', path: '/scan' },
   { label: 'Scan History', path: '/history' },
+  { label: 'Nutrition Insights', path: '/insights' },
+  { label: 'Compare Products', path: '/compare' },
   { label: 'Recommendations', path: '/recommendations' },
   { label: 'Profile', path: '/profile' },
   { label: 'Settings', path: '/settings' },

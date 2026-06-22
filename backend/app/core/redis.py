@@ -14,17 +14,26 @@ class RedisClient:
             return
 
         try:
+            kwargs = {
+                "encoding": "utf-8",
+                "decode_responses": True,
+                "socket_timeout": 5.0
+            }
+            if settings.REDIS_URL.startswith("rediss://"):
+                kwargs["ssl_cert_reqs"] = "none"
+
             self.redis = aioredis.from_url(
                 settings.REDIS_URL,
-                encoding="utf-8",
-                decode_responses=True,
-                socket_timeout=5.0
+                **kwargs
             )
             # Test connection
             await self.redis.ping()
-            logger.info("✓ Redis Connected")
+            logger.info("✓ Connected to Upstash Redis" if "upstash" in settings.REDIS_URL.lower() else "✓ Redis Connected")
         except Exception as e:
-            logger.error(f"Failed to connect to Redis: {e}")
+            if "upstash" in settings.REDIS_URL.lower():
+                logger.error(f"Failed to connect to Upstash Redis: {e}")
+            else:
+                logger.error(f"Failed to connect to Redis: {e}")
             self.redis = None
 
     async def disconnect(self):

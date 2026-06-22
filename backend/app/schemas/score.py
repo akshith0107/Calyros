@@ -44,20 +44,35 @@ class DynamicNutritionBreakdown(BaseModel):
     additives: List[str] = []
 
 class ScoreResponse(BaseModel):
-    # Backward compatibility fields (optional)
-    nutrition_score: Optional[float] = None
-    ingredient_score: Optional[float] = None
-    processing_score: Optional[float] = None
-    compatibility_score: Optional[float] = None
-    overall_score: float
+    score: float
     classification: str
-    warnings: List[str]
-    flags: List[str]
-
-    # New Intelligence Engine Fields
-    nutrition_breakdown: Optional[Union[DynamicNutritionBreakdown, dict[str, NutrientDetail]]] = None
-    score_breakdown: Optional[dict[str, ScoreComponent]] = None
-    personalized_analysis: Optional[str] = None
-    recommendations: Optional[List[str]] = None
+    nutrition_facts: dict
+    all_detected_nutrients: List[dict] = []
+    vitamins: List[dict] = []
+    minerals: List[dict] = []
+    ingredients: List[str] = []
+    allergens: List[str] = []
+    additives: List[str] = []
+    key_findings: List[str] = []
+    positive_factors: List[str] = []
+    concerns: List[str] = []
+    allergy_analysis: dict = {}
+    personalized_analysis: str = ""
+    recommendations: List[str] = []
+    
+    ingredient_quality_score: float = 100.0
+    ingredient_findings: List[str] = []
+    processing_assessment: str = "Unknown"
+    confidence_score: float = 100.0
+    
+    # New Nutrition Intelligence fields
+    sugar_risk_score: dict = {}
+    protein_density_score: dict = {}
+    satiety_score: dict = {}
+    glycemic_impact: dict = {}
+    goal_alignment: dict = {}
+    personalized_verdict: dict = {}
+    bmi_status: dict = {}
+    profile_used: dict = {}
 
     model_config = ConfigDict(from_attributes=True)

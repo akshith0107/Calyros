@@ -77,30 +77,32 @@ export default function Scan() {
       const scanId = scanData.scan_id;
       FE_TIMELINE.SCAN_ID = scanId;
       
-      const analysisData = scanData.analysis || {};
-      const extractedFacts = scanData.scan_history?.extracted_json || {};
-      
-      const ocrData = {
-        productName: scanData.product?.product_name || "Unknown Product",
-        servingSize: extractedFacts.serving_size || "N/A",
-        ingredients: extractedFacts.ingredients || [],
-        nutritionFacts: extractedFacts.nutrition_facts || {},
-        vitamins: extractedFacts.vitamins || {},
-        minerals: extractedFacts.minerals || {},
-        aminoAcids: extractedFacts.amino_acids || {},
-        allergens: extractedFacts.allergens || [],
-        additives: extractedFacts.additives || [],
-        claims: extractedFacts.claims || [],
+      const aiAnalysis = {
+        totalScore: scanData.score || 0,
+        classification: scanData.classification || "Unknown",
+        personalizedAnalysis: scanData.personalized_analysis || "",
+        recommendations: scanData.recommendations || [],
+        keyFindings: scanData.key_findings || [],
+        positiveFactors: scanData.positive_factors || [],
+        concerns: scanData.concerns || [],
+        allergyAnalysis: scanData.allergy_analysis || {},
+        allDetectedNutrients: scanData.all_detected_nutrients || [],
+        ingredientQualityScore: scanData.ingredient_quality_score || 0,
+        ingredientFindings: scanData.ingredient_findings || [],
+        processingAssessment: scanData.processing_assessment || "Unknown"
       };
 
-      const aiAnalysis = {
-        totalScore: analysisData.health_score || analysisData.overall_score || analysisData.total_score || 0,
-        classification: analysisData.classification || "N/A",
-        personalizedAnalysis: analysisData.personalized_analysis || "",
-        recommendations: analysisData.recommendations || [],
-        flags: analysisData.flags || [],
-        breakdown: analysisData.nutrition_breakdown || {},
-        scoreBreakdown: analysisData.score_breakdown || {}
+      const ocrData = {
+        productName: scanData.product_name || "Unknown Product",
+        servingSize: scanData.serving_size || "N/A",
+        ingredients: scanData.ingredients || [],
+        nutritionFacts: scanData.nutrition_facts || {},
+        vitamins: scanData.vitamins || [],
+        minerals: scanData.minerals || [],
+        allergens: scanData.allergens || [],
+        additives: scanData.additives || [],
+        preservatives: scanData.preservatives || [],
+        beneficialCompounds: scanData.beneficial_compounds || []
       };
 
       setAnalysisResult({ scanId, ocrData, aiAnalysis });

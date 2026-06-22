@@ -55,14 +55,14 @@ export default function Chat() {
     setInput("");
     setIsLoading(true);
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     
     // Add an empty assistant message to stream into
     const assistantMsgId = `stream_${Date.now()}`;
     setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/chat/${sessionId}/message`, {
+      const response = await fetch(`${apiClient.defaults.baseURL}/chat/${sessionId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

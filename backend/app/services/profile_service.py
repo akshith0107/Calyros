@@ -4,12 +4,20 @@ from sqlalchemy.orm import Session
 from app.repositories.profile_repository import profile_repo
 from app.schemas.profile_payloads import ProfileOnboardingRequest, HealthSummaryResponse, ProfileCompletionResponse
 
+from app.services.profile_analytics_service import profile_analytics_service
+
 class ProfileService:
     def create_profile(self, db: Session, user_id: UUID, obj_in: ProfileOnboardingRequest) -> Dict[str, Any]:
-        return profile_repo.create(db, user_id, obj_in)
+        result = profile_repo.create(db, user_id, obj_in)
+        if result.get("profile"):
+            profile_analytics_service.update_user_analytics(db, user_id, result["profile"])
+        return result
 
     def update_profile(self, db: Session, user_id: UUID, obj_in: ProfileOnboardingRequest) -> Dict[str, Any]:
-        return profile_repo.update(db, user_id, obj_in)
+        result = profile_repo.update(db, user_id, obj_in)
+        if result.get("profile"):
+            profile_analytics_service.update_user_analytics(db, user_id, result["profile"])
+        return result
 
     def get_profile(self, db: Session, user_id: UUID) -> Dict[str, Any]:
         return profile_repo.get_by_user_id(db, user_id)

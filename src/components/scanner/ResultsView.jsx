@@ -1,28 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../Button';
+import { motion } from 'framer-motion';
 import HealthScoreRing from '../HealthScoreRing';
 import GlassCard from '../GlassCard';
+import apiClient from '../../services/apiClient';
 
-export default function ResultsView({ result, imageUri, onSave, onScanAgain, onClose }) {
+export default function ResultsView({ result, onClose }) {
   const { scanId, ocrData, aiAnalysis } = result;
   const navigate = useNavigate();
-  const [showMetrics, setShowMetrics] = useState(false);
+
+  const [alternatives, setAlternatives] = useState(null);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(true);
+
+  useEffect(() => {
+    const fetchAlternatives = async () => {
+      try {
+        const { data } = await apiClient.get(`/scan/${scanId}/alternatives`);
+        setAlternatives(data.data.alternatives);
+      } catch (e) {
+        console.error("Failed to fetch alternatives", e);
+      } finally {
+        setLoadingAlternatives(false);
+      }
+    };
+    if (scanId) {
+      fetchAlternatives();
+    }
+  }, [scanId]);
   
   const classificationColors = {
     "Excellent": "bg-green-500/20 text-green-400 border-green-500/30",
     "Good": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     "Moderate": "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    "Limit Consumption": "bg-orange-500/20 text-orange-400 border-orange-500/30",
-    "Avoid Frequent Use": "bg-red-500/20 text-red-400 border-red-500/30"
+    "Poor": "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    "Avoid": "bg-red-500/20 text-red-400 border-red-500/30"
   };
 
   const getClassificationBadge = (classification) => {
     return classificationColors[classification] || "bg-white/10 text-white border-white/20";
   };
 
-  const b = aiAnalysis.breakdown || {};
   const hasContent = (arr) => Array.isArray(arr) && arr.length > 0;
 
   return (
@@ -43,9 +60,9 @@ export default function ResultsView({ result, imageUri, onSave, onScanAgain, onC
         </button>
       </header>
 
-      <div className="max-w-3xl mx-auto p-4 pb-32 lg:p-8 space-y-8">
+      <div className="max-w-4xl mx-auto p-4 pb-32 lg:p-8 space-y-6">
         
-        {/* Chat Prompt */}
+        {/* SECTION 11: Discuss with Calyros AI */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
           <button 
             onClick={() => navigate(`/chat/${scanId}`)}
@@ -54,11 +71,11 @@ export default function ResultsView({ result, imageUri, onSave, onScanAgain, onC
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            Discuss with Nutra AI
+            Discuss with Calyros AI
           </button>
         </motion.div>
 
-        {/* SECTION 1: Product Header */}
+        {/* SECTION 1: Health Score */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <GlassCard className="flex flex-col md:flex-row items-center gap-8 p-8" hoverable={false}>
             <div className="flex-1 text-center md:text-left">
@@ -75,241 +92,265 @@ export default function ResultsView({ result, imageUri, onSave, onScanAgain, onC
             </div>
             <div className="shrink-0 relative">
               <HealthScoreRing score={aiAnalysis.totalScore} size={180} strokeWidth={8} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-white/60 text-[10px] font-bold tracking-widest uppercase mt-8">Score</span>
-              </div>
             </div>
           </GlassCard>
         </motion.div>
-        {/* SECTION 2: WHY THIS SCORE */}
-        {aiAnalysis.scoreBreakdown && Object.keys(aiAnalysis.scoreBreakdown).length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <GlassCard hoverable={false} className="p-6 border-t-2 border-t-[var(--color-primary)]/50">
-              <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Why This Score?
-              </h3>
-              <div className="space-y-3">
-                {Object.entries(aiAnalysis.scoreBreakdown).map(([key, data]) => (
-                  <div key={key} className="flex flex-col bg-black/40 border border-white/5 rounded-lg p-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80 font-medium">{key}</span>
-                      <span className="text-white font-bold">{data.score} / {data.max_score}</span>
-                    </div>
-                    <span className="text-white/40 text-xs mt-1">{data.explanation}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between items-center bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 rounded-lg p-3 mt-4">
-                  <span className="text-[var(--color-primary)] font-bold">Total</span>
-                  <span className="text-[var(--color-primary)] font-bold text-lg">{aiAnalysis.totalScore} / 100</span>
-                </div>
-              </div>
-            </GlassCard>
-          </motion.div>
-        )}
 
-        {/* SECTION 3: KEY FINDINGS */}
-        {hasContent(b.key_findings) && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
-            <GlassCard hoverable={false} className="p-6 border-t-2 border-t-[var(--color-primary)]/50">
-              <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Key Findings
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {b.key_findings.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 bg-black/40 border border-white/5 rounded-xl p-4">
-                    <span className="text-lg mt-0.5">{item.title.toLowerCase().includes('high') && !item.title.toLowerCase().includes('protein') ? '⚠' : '✓'}</span>
-                    <div>
-                      <span className="text-white font-medium block mb-1">{item.title}</span>
-                      <span className="text-white/50 text-xs leading-snug">{item.explanation}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          </motion.div>
-        )}
-
-        {/* SECTION 4: NUTRITION SNAPSHOT */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <GlassCard hoverable={false} className="p-6 border-t-2 border-t-white/10">
-            <h3 className="text-white/60 text-xs font-bold tracking-widest uppercase mb-4">Nutrition Snapshot</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              {[
-                { label: 'Calories', val: ocrData.nutritionFacts.calories },
-                { label: 'Protein', val: ocrData.nutritionFacts.protein },
-                { label: 'Sugar', val: ocrData.nutritionFacts.sugar },
-                { label: 'Fat', val: ocrData.nutritionFacts.total_fat },
-                { label: 'Fiber', val: ocrData.nutritionFacts.fiber },
-                { label: 'Sodium', val: ocrData.nutritionFacts.sodium },
-              ].filter(n => n.val !== undefined && n.val !== null && n.val !== '' && n.val !== '0' && n.val !== 0).map((n, i) => (
-                <div key={i} className="bg-black/40 border border-white/5 rounded-xl p-3 flex flex-col justify-between">
-                  <span className="text-white/40 text-[10px] uppercase font-bold tracking-widest mb-1 truncate">{n.label}</span>
-                  <span className="text-white font-semibold truncate">{n.val}</span>
-                </div>
-              ))}
-            </div>
-            {ocrData.servingSize && ocrData.servingSize !== "N/A" && (
-              <div className="mt-4 text-center">
-                <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Serving Size: </span>
-                <span className="text-white/80 text-sm font-medium">{ocrData.servingSize}</span>
-              </div>
-            )}
-          </GlassCard>
-        </motion.div>
-
-        {/* SECTION 5: INGREDIENT INTELLIGENCE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+          {/* SECTION 9: Personalized Insights */}
+          {aiAnalysis.personalizedAnalysis && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <GlassCard hoverable={false} className="p-6 border-l-4 border-l-[var(--color-primary)]">
+                <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-2">Personalized Insights</h3>
+                <p className="text-white/90 leading-relaxed text-sm">{aiAnalysis.personalizedAnalysis}</p>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* SECTION 2: Why This Score */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <GlassCard hoverable={false} className="p-6 h-full border-t-2 border-t-green-500/50">
-              <h3 className="text-green-400 text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                Important Ingredients
-              </h3>
-              <div className="space-y-4">
-                {b.key_nutrients && b.key_nutrients.length > 0 ? b.key_nutrients.map((item, i) => (
-                  <div key={i} className="bg-black/30 rounded-lg p-3 border border-green-500/10">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-white font-medium">{item.name}</span>
-                    </div>
-                    <p className="text-white/50 text-xs leading-snug">{item.explanation}</p>
-                  </div>
-                )) : (
-                  <p className="text-white/40 text-sm">No significant beneficial ingredients detected.</p>
-                )}
-              </div>
+            <GlassCard hoverable={false} className="p-6 h-full border-t-2 border-t-emerald-500/50">
+              <h3 className="text-emerald-400 text-xs font-bold tracking-widest uppercase mb-4">Positive Factors</h3>
+              <ul className="space-y-3">
+                {hasContent(aiAnalysis.positiveFactors) ? aiAnalysis.positiveFactors.map((item, i) => (
+                  <li key={i} className="flex gap-3 text-white/80 text-sm bg-black/30 p-3 rounded-lg border border-emerald-500/20">
+                    <span className="text-emerald-400">✓</span> {item}
+                  </li>
+                )) : <li className="text-white/40 text-sm">No significant positive factors.</li>}
+              </ul>
             </GlassCard>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <GlassCard hoverable={false} className="p-6 h-full border-t-2 border-t-red-500/50">
-              <h3 className="text-red-400 text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                Potential Concerns
-              </h3>
-              <div className="space-y-4">
-                {b.potential_concerns && b.potential_concerns.length > 0 ? b.potential_concerns.map((item, i) => (
-                  <div key={i} className="bg-black/30 rounded-lg p-3 border border-red-500/10">
-                    <span className="text-white font-medium block mb-1">{item.name}</span>
-                    <p className="text-white/50 text-xs leading-snug">{item.explanation}</p>
+              <h3 className="text-red-400 text-xs font-bold tracking-widest uppercase mb-4">Concerns</h3>
+              <ul className="space-y-3">
+                {hasContent(aiAnalysis.concerns) ? aiAnalysis.concerns.map((item, i) => (
+                  <li key={i} className="flex gap-3 text-white/80 text-sm bg-black/30 p-3 rounded-lg border border-red-500/20">
+                    <span className="text-red-400">⚠</span> {item}
+                  </li>
+                )) : <li className="text-white/40 text-sm">No significant concerns.</li>}
+              </ul>
+            </GlassCard>
+          </motion.div>
+
+          {/* SECTION 3: Key Findings */}
+          {hasContent(aiAnalysis.keyFindings) && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <GlassCard hoverable={false} className="p-6">
+                <h3 className="text-white/60 text-xs font-bold tracking-widest uppercase mb-4">Key Findings</h3>
+                <div className="flex flex-wrap gap-2">
+                  {aiAnalysis.keyFindings.map((item, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/80 text-sm">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* SECTION 7: Allergen Analysis */}
+          {aiAnalysis.allergyAnalysis && aiAnalysis.allergyAnalysis.status && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+              <GlassCard hoverable={false} className={`p-6 border-l-4 ${aiAnalysis.allergyAnalysis.status === 'Allergy Conflict Detected' ? 'border-l-red-500 bg-red-500/5' : 'border-l-green-500'}`}>
+                <h3 className="text-white/60 text-xs font-bold tracking-widest uppercase mb-2">Allergen Analysis</h3>
+                <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+                  <div>
+                    <span className={`font-bold ${aiAnalysis.allergyAnalysis.status === 'Allergy Conflict Detected' ? 'text-red-400' : 'text-green-400'}`}>
+                      {aiAnalysis.allergyAnalysis.status}
+                    </span>
+                    <p className="text-white/70 text-sm mt-1">{aiAnalysis.allergyAnalysis.message}</p>
                   </div>
-                )) : (
-                  <p className="text-white/40 text-sm">No major concerning ingredients detected.</p>
-                )}
+                  {hasContent(ocrData.allergens) && (
+                    <div className="flex gap-2">
+                      {ocrData.allergens.map((a, i) => (
+                        <span key={i} className="px-3 py-1 bg-white/10 rounded-full text-white text-xs">{a}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* SECTION: Better Alternatives */}
+          <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
+            <GlassCard hoverable={false} className="p-6 border-l-4 border-l-blue-500">
+              <h3 className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Better Alternatives
+              </h3>
+              
+              {loadingAlternatives ? (
+                <div className="animate-pulse flex space-x-4">
+                  <div className="flex-1 space-y-4 py-1">
+                    <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-white/10 rounded"></div>
+                      <div className="h-4 bg-white/10 rounded w-5/6"></div>
+                    </div>
+                  </div>
+                </div>
+              ) : alternatives && alternatives.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {alternatives.map((alt, i) => (
+                    <div key={i} className="bg-[#141414] p-4 rounded-lg border border-white/5 relative overflow-hidden group flex flex-col">
+                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg className="w-12 h-12 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      </div>
+                      <div className="mb-2">
+                        <span className="inline-block px-2 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wider rounded border border-blue-500/30 mb-2">
+                          {alt.category || "Healthier Alternative"}
+                        </span>
+                        <h4 className="text-white font-bold">{alt.name}</h4>
+                      </div>
+                      <p className="text-gray-400 text-xs mb-3">{alt.reason}</p>
+                      
+                      <div className="mb-3 flex-grow">
+                        <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-1">Benefits</span>
+                        <ul className="text-xs text-green-400 space-y-1">
+                          {alt.benefits.map((b, j) => <li key={j} className="flex items-start"><span className="mr-1">✓</span>{b}</li>)}
+                        </ul>
+                      </div>
+                      
+                      <div className="space-y-2 mt-auto">
+                        <div className="bg-blue-500/10 text-blue-300 text-xs p-2 rounded border border-blue-500/20">
+                          <span className="font-bold">Expected: </span>{alt.expected_improvement}
+                        </div>
+                        {alt.goal_alignment && (
+                          <div className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs p-2 rounded border border-[var(--color-primary)]/20">
+                            <span className="font-bold">Goal Alignment: </span>{alt.goal_alignment}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-white/40 text-sm">No alternatives generated.</p>
+              )}
+            </GlassCard>
+          </motion.div>
+
+          {/* SECTION 4: Full Nutrition Facts */}
+          <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <GlassCard hoverable={false} className="p-6">
+              <h3 className="text-white/60 text-xs font-bold tracking-widest uppercase mb-4">Core Nutrition Facts</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {Object.entries(ocrData.nutritionFacts).filter(([_, val]) => val !== undefined && val !== null && val !== '').map(([key, val], i) => (
+                  <div key={i} className="bg-black/40 border border-white/5 rounded-xl p-3 flex flex-col justify-between">
+                    <span className="text-white/40 text-[10px] uppercase font-bold tracking-widest mb-1 truncate">{key.replace('_', ' ')}</span>
+                    <span className="text-white font-semibold truncate">{val}</span>
+                  </div>
+                ))}
               </div>
             </GlassCard>
           </motion.div>
 
-          {/* SECTION 6: ALLERGY ANALYSIS */}
-          {(hasContent(b.product_allergens) || hasContent(b.additives)) && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="md:col-span-2 space-y-6">
-              
-              {/* Allergy Alert - Red Danger Card */}
-              {b.has_allergy_conflict && (
-                <GlassCard hoverable={false} className="p-6 border-2 border-red-500/50 bg-red-900/10">
-                  <div className="flex items-start gap-3 mb-4">
-                    <span className="text-2xl">🚨</span>
-                    <div>
-                      <h3 className="text-red-400 text-sm font-bold tracking-widest uppercase">Allergy Alert</h3>
-                      <p className="text-red-300 text-sm mt-1">This product contains ingredients that match your allergy profile.</p>
+          {/* SECTION 5: Vitamins & Minerals */}
+          {(hasContent(ocrData.vitamins) || hasContent(ocrData.minerals)) && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+              <GlassCard hoverable={false} className="p-6">
+                <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-4">Micronutrients (Vitamins & Minerals)</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[...ocrData.vitamins, ...ocrData.minerals].map((item, i) => (
+                    <div key={i} className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 flex justify-between items-center">
+                      <span className="text-white/80 text-sm font-medium">{item.name}</span>
+                      <span className="text-[var(--color-primary)] font-bold text-sm">{item.value}{item.unit}</span>
                     </div>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <h4 className="text-red-400/80 text-xs font-bold uppercase mb-2">Matched Allergens</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {b.matched_allergies.map((item, i) => (
-                        <span key={i} className="bg-red-500/20 text-red-300 border border-red-500/40 px-3 py-1.5 rounded-lg text-sm font-bold">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {b.product_allergens.filter(a => !b.matched_allergies.includes(a)).length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-red-500/20">
-                      <h4 className="text-red-400/60 text-xs font-bold uppercase mb-2">Other Product Allergens</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {b.product_allergens.filter(a => !b.matched_allergies.includes(a)).map((item, i) => (
-                          <span key={i} className="bg-black/20 text-red-300/70 border border-red-500/10 px-3 py-1.5 rounded-lg text-sm font-medium">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </GlassCard>
-              )}
-
-              {/* Neutral Informational Blocks */}
-              {(!b.has_allergy_conflict || hasContent(b.additives)) && (
-                <GlassCard hoverable={false} className={`p-6 border-t-2 ${!b.has_allergy_conflict && hasContent(b.product_allergens) ? 'border-t-blue-400/30' : 'border-t-yellow-500/50'}`}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    {!b.has_allergy_conflict && hasContent(b.product_allergens) && (
-                      <div>
-                        <h3 className="text-blue-300 text-xs font-bold tracking-widest uppercase mb-4">Product Allergens</h3>
-                        <p className="text-white/40 text-xs mb-3">No conflict with your profile.</p>
-                        <div className="flex flex-wrap gap-2">
-                          {b.product_allergens.map((item, i) => (
-                            <span key={i} className="bg-blue-500/10 text-blue-200 border border-blue-500/20 px-3 py-1.5 rounded-lg text-sm font-medium">
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {hasContent(b.additives) && (
-                      <div>
-                        <h3 className="text-yellow-400 text-xs font-bold tracking-widest uppercase mb-4">Additives & Preservatives</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {b.additives.map((item, i) => (
-                            <span key={i} className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 px-3 py-1.5 rounded-lg text-sm font-medium">
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                  </div>
-                </GlassCard>
-              )}
-
+                  ))}
+                </div>
+              </GlassCard>
             </motion.div>
           )}
 
-        </div>
+          {/* SECTION 6: Ingredient Intelligence */}
+          {hasContent(ocrData.ingredients) && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <GlassCard hoverable={false} className="p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <div>
+                    <h3 className="text-purple-400 text-xs font-bold tracking-widest uppercase mb-1">Ingredient Intelligence</h3>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
+                        aiAnalysis.processingAssessment === 'Minimally Processed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        aiAnalysis.processingAssessment === 'Processed' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                        'bg-red-500/20 text-red-400 border border-red-500/30'
+                      }`}>
+                        {aiAnalysis.processingAssessment}
+                      </span>
+                      <span className="text-white/60 text-sm">
+                        Score: <strong className="text-white">{aiAnalysis.ingredientQualityScore}/100</strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-        {/* SECTION 7: PERSONALIZED ANALYSIS */}
-        {aiAnalysis.personalizedAnalysis && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <GlassCard hoverable={false} className="p-6 border-l-4 border-l-[var(--color-primary)]">
-              <h3 className="text-white/60 text-xs font-bold tracking-widest uppercase mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Personalized For You
-              </h3>
-              <p className="text-white/90 leading-relaxed text-base font-medium">
-                "{aiAnalysis.personalizedAnalysis}"
-              </p>
-            </GlassCard>
-          </motion.div>
-        )}
+                {hasContent(aiAnalysis.ingredientFindings) && (
+                  <div className="mb-6 space-y-3">
+                    {aiAnalysis.ingredientFindings.map((finding, i) => {
+                      const isPositive = finding.includes('quality') || finding.includes('whole-food') || finding.includes('no significant additives');
+                      return (
+                        <div key={i} className={`flex gap-3 text-sm p-3 rounded-lg border ${
+                          isPositive ? 'bg-green-500/10 border-green-500/20 text-green-100' : 'bg-orange-500/10 border-orange-500/20 text-orange-100'
+                        }`}>
+                          <span className={isPositive ? 'text-green-400' : 'text-orange-400'}>
+                            {isPositive ? '✓' : '⚠'}
+                          </span>
+                          {finding}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
-      </div>
+                <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                  <h4 className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2">Raw Ingredient List</h4>
+                  <p className="text-white/70 text-xs leading-relaxed font-mono">
+                    {ocrData.ingredients.join(', ')}
+                  </p>
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
 
-      {/* Floating Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-[#050505] to-transparent z-40">
-        <div className="max-w-3xl mx-auto flex gap-4">
-          <Button variant="secondary" className="flex-1" onClick={onScanAgain}>
-            Scan Another
-          </Button>
-          <Button variant="primary" className="flex-1" onClick={onSave}>
-            Save to Dashboard
-          </Button>
+          {/* SECTION 8: Additives & Preservatives */}
+          {(hasContent(ocrData.additives) || hasContent(ocrData.preservatives)) && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+              <GlassCard hoverable={false} className="p-6 border-t-2 border-t-yellow-500/50">
+                <h3 className="text-yellow-400 text-xs font-bold tracking-widest uppercase mb-4">Additives & Preservatives</h3>
+                <div className="flex flex-wrap gap-2">
+                  {[...ocrData.additives, ...ocrData.preservatives].map((item, i) => (
+                    <span key={i} className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 rounded text-xs font-medium">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* SECTION 10: Recommendations */}
+          {hasContent(aiAnalysis.recommendations) && (
+            <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+              <GlassCard hoverable={false} className="p-6 border-t-2 border-t-blue-500/50">
+                <h3 className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-4">Next Steps</h3>
+                <ul className="space-y-3">
+                  {aiAnalysis.recommendations.map((item, i) => (
+                    <li key={i} className="flex gap-3 text-white/80 text-sm bg-black/30 p-3 rounded-lg border border-blue-500/20">
+                      <span className="text-blue-400">➜</span> {item}
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+            </motion.div>
+          )}
+
         </div>
       </div>
     </div>

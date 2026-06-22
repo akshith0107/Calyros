@@ -13,6 +13,18 @@ export function useProfile() {
   });
 }
 
+// Get Profile Analytics (BMI, Macros)
+export function useProfileAnalytics() {
+  return useQuery({
+    queryKey: ['profileAnalytics'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/profile/me/analytics');
+      if (!data.success) throw new Error(data.message);
+      return data.data;
+    }
+  });
+}
+
 // Get Dashboard Stats (Totals, Averages)
 export function useDashboardStats() {
   return useQuery({

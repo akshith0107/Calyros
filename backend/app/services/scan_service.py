@@ -9,7 +9,6 @@ from app.models.nutrition_fact import NutritionFact
 from app.models.ingredient import Ingredient
 from app.models.scan_history import ScanHistory
 from app.services.storage_service import storage_service
-from app.services.ocr_service import ocr_service
 from app.services.extraction_service import extraction_service
 from app.services.nutrition_parser import nutrition_parser
 
@@ -20,12 +19,14 @@ class ScanService:
         """
         Orchestrates the entire label scanning pipeline.
         """
-        # 1. Upload Image
-        logger.info("Step 1: Uploading image to Supabase")
-        storage_res = await storage_service.upload_image(file_bytes, file_ext)
-        image_url = storage_res["image_url"]
+        # 1. Image Prep
+        mime_type = f"image/{file_ext.lower()}"
+        if mime_type == "image/jpg":
+            mime_type = "image/jpeg"
+            
         try:
             import time
+            import asyncio
             from datetime import datetime, timezone
             
             def ts():
@@ -36,27 +37,26 @@ class ScanService:
             logger.info("=" * 60)
             total_start = time.time()
             
-            # STAGE 0: OCR
-            ocr_start_ts = ts()
-            ocr_start = time.time()
-            ocr_text = await ocr_service.extract_text(file_bytes)
-            ocr_end = time.time()
-            ocr_end_ts = ts()
-            ocr_duration_ms = (ocr_end - ocr_start) * 1000
-            logger.info(f"OCR_START           = {ocr_start_ts}")
-            logger.info(f"OCR_END             = {ocr_end_ts}")
-            logger.info(f"OCR_DURATION_MS     = {ocr_duration_ms:.2f}")
+            ocr_text = "Extracted via Gemini Vision"
+            ocr_duration_ms = 0.0
             
-            # STAGE 1: EXTRACTION (Llama 4 Scout)
-            scout_start_ts = ts()
+            # STAGE 1: PARALLEL UPLOAD & EXTRACTION (Gemini 2.5 Flash)
+            logger.info("Step 1: Uploading image to Supabase and extracting data with Gemini in parallel")
+            gemini_start_ts = ts()
             ext_start = time.time()
-            raw_ai_data = await extraction_service.extract_data(ocr_text)
+            
+            storage_task = storage_service.upload_image(file_bytes, file_ext)
+            extraction_task = extraction_service.extract_data(file_bytes, mime_type)
+            
+            storage_res, raw_ai_data = await asyncio.gather(storage_task, extraction_task)
+            
+            image_url = storage_res["image_url"]
             ext_end = time.time()
-            scout_end_ts = ts()
+            gemini_end_ts = ts()
             extraction_time_ms = (ext_end - ext_start) * 1000
-            logger.info(f"SCOUT_START         = {scout_start_ts}")
-            logger.info(f"SCOUT_END           = {scout_end_ts}")
-            logger.info(f"SCOUT_DURATION_MS   = {extraction_time_ms:.2f}")
+            logger.info(f"GEMINI_START        = {gemini_start_ts}")
+            logger.info(f"GEMINI_END          = {gemini_end_ts}")
+            logger.info(f"GEMINI_DURATION_MS  = {extraction_time_ms:.2f}")
             
             # Parse & Validate
             parsed_data = nutrition_parser.parse(raw_ai_data)
@@ -104,7 +104,7 @@ class ScanService:
             if scan_history:
                 scan_history.analysis_json = analysis_result
                 scan_history.analysis_time_ms = scoring_duration_ms
-                scan_history.overall_score = score_response.overall_score
+                scan_history.overall_score = score_response.score
                 db.commit()
             db_time_ms_2 = (time.time() - db_start_2) * 1000
             db_write_end_ts = ts()
@@ -113,25 +113,36 @@ class ScanService:
             logger.info(f"DB_WRITE_END        = {db_write_end_ts}")
             logger.info(f"DB_WRITE_DURATION_MS= {db_total_ms:.2f}")
             
-            # RESPONSE ASSEMBLY
+            # RESPONSE ASSEMBLY (Phase 6 API Redesign)
             api_resp_start_ts = ts()
             api_resp_start = time.time()
             score_dict = score_response.model_dump()
-            result_payload["analysis"] = {
-                "health_score": score_dict["overall_score"],
+            
+            # Reconstruct exactly as requested by Phase 6
+            final_response = {
+                "success": True,
+                "scan_id": str(scan_id),
+                "image_url": result_payload.get("image_url", ""),
+                "score": score_dict["score"],
                 "classification": score_dict["classification"],
-                "nutrition_breakdown": score_dict["nutrition_breakdown"],
-                "score_breakdown": score_dict["score_breakdown"],
+                "nutrition_facts": score_dict["nutrition_facts"],
+                "all_detected_nutrients": score_dict["all_detected_nutrients"],
+                "vitamins": score_dict["vitamins"],
+                "minerals": score_dict["minerals"],
+                "ingredients": score_dict["ingredients"],
+                "allergens": score_dict["allergens"],
+                "additives": score_dict["additives"],
+                "key_findings": score_dict["key_findings"],
+                "positive_factors": score_dict["positive_factors"],
+                "concerns": score_dict["concerns"],
+                "allergy_analysis": score_dict["allergy_analysis"],
                 "personalized_analysis": score_dict["personalized_analysis"],
                 "recommendations": score_dict["recommendations"],
-                "flags": score_dict["flags"]
+                "ingredient_quality_score": score_dict["ingredient_quality_score"],
+                "ingredient_findings": score_dict["ingredient_findings"],
+                "processing_assessment": score_dict["processing_assessment"]
             }
-            # We don't overwrite nutrition_facts here because result_payload might contain stale
-            # existing product facts if we pulled them from the DB.
-            # But wait, result_payload already contains the correct DB references from STAGE 2.
-            # The only thing we needed to avoid was replacing result_payload["nutrition_facts"] 
-            # with DB facts, but STAGE 2 (_store_scan_results) already DOES that internally!
-            # So the API response will contain DB facts unless we change _store_scan_results.
+            
             api_resp_end = time.time()
             api_resp_end_ts = ts()
             api_resp_duration_ms = (api_resp_end - api_resp_start) * 1000
@@ -143,9 +154,8 @@ class ScanService:
             
             logger.info("━━━━━━━━━━━━━━━━━━━━━━ TRACEABILITY ━━━━━━━━━━━━━━━━━━━━━━")
             logger.info(f"OCR Output:\n{ocr_text}")
-            logger.info(f"Scout Output:\n{json.dumps(raw_ai_data, indent=2)}")
             logger.info(f"Parsed JSON:\n{json.dumps(parsed_data, indent=2)}")
-            logger.info(f"Score Breakdown:\n{json.dumps(score_dict['score_breakdown'], indent=2) if score_dict['score_breakdown'] else '{}'}")
+            logger.info(f"Key Findings:\n{json.dumps(score_dict['key_findings'], indent=2)}")
             
             # Need to handle SQLAlchemy objects safely in json.dumps
             def safe_serialize(obj):
@@ -155,7 +165,7 @@ class ScanService:
                     return d
                 return str(obj)
                 
-            logger.info(f"Final API Response:\n{json.dumps(result_payload, indent=2, default=safe_serialize)}")
+            logger.info(f"Final API Response:\n{json.dumps(final_response, indent=2, default=safe_serialize)}")
             logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             
             logger.info("-" * 60)
@@ -163,7 +173,7 @@ class ScanService:
             logger.info(f"TOTAL_DURATION_MS   = {total_time_ms:.2f}")
             logger.info("=" * 60)
             
-            return result_payload
+            return final_response
             
         except Exception as e:
             # Rollback image if processing fails
@@ -242,13 +252,26 @@ class ScanService:
             timings["facts_create"] = (time.time() - t2) * 1000
             
             t3 = time.time()
-            for ing_name in data["ingredients"]:
-                ingredient = db.query(Ingredient).filter(Ingredient.ingredient_name == ing_name).first()
-                if not ingredient:
-                    ingredient = Ingredient(ingredient_name=ing_name)
-                    db.add(ingredient)
-                product.ingredients.append(ingredient)
-            db.flush()
+            if data.get("ingredients"):
+                ing_names = data["ingredients"]
+                existing_ings = db.query(Ingredient).filter(Ingredient.ingredient_name.in_(ing_names)).all()
+                existing_map = {ing.ingredient_name: ing for ing in existing_ings}
+                
+                new_ingredients = []
+                for ing_name in ing_names:
+                    if ing_name not in existing_map:
+                        new_ing = Ingredient(ingredient_name=ing_name)
+                        new_ingredients.append(new_ing)
+                        existing_map[ing_name] = new_ing
+                        
+                if new_ingredients:
+                    db.add_all(new_ingredients)
+                    db.flush()
+                    
+                for ing_name in ing_names:
+                    product.ingredients.append(existing_map[ing_name])
+                    
+                db.flush()
             timings["ingredients_create"] = (time.time() - t3) * 1000
         else:
             logger.info("━━━━━━━━━━━━━━━━━━━━━━ PRODUCT SAVED ━━━━━━━━━━━━━━━━━━━━━━")

@@ -95,3 +95,41 @@ async def get_my_health_summary(
         "success": True,
         "data": summary.model_dump()
     }
+
+from app.services.profile_analytics_service import profile_analytics_service
+
+@router.get("/me/analytics")
+async def get_my_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    analytics = profile_analytics_service.get_latest_analytics(db, current_user.id)
+    
+    # format response
+    bmi_data = None
+    if analytics["bmi"]:
+        bmi_data = {
+            "bmi": analytics["bmi"].bmi,
+            "category": analytics["bmi"].category,
+            "health_assessment": analytics["bmi"].health_assessment,
+            "ideal_weight_range": analytics["bmi"].ideal_weight_range,
+            "recommendation": analytics["bmi"].recommendation
+        }
+        
+    targets_data = None
+    if analytics["targets"]:
+        targets_data = {
+            "daily_calories": analytics["targets"].daily_calories,
+            "protein_target_g": analytics["targets"].protein_target_g,
+            "carb_target_g": analytics["targets"].carb_target_g,
+            "fat_target_g": analytics["targets"].fat_target_g,
+            "water_target_liters": analytics["targets"].water_target_liters
+        }
+        
+    return {
+        "success": True,
+        "data": {
+            "bmi": bmi_data,
+            "nutrition_targets": targets_data
+        }
+    }

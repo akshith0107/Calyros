@@ -89,3 +89,113 @@ async def get_scan_by_id(
         "analysis": scan.analysis_json,
         "extracted": scan.extracted_json
     }
+
+from fastapi.responses import FileResponse
+from app.services.pdf_service import pdf_service
+from app.services.profile_analytics_service import profile_analytics_service
+from app.services.profile_service import profile_service
+from app.models.ai_recommendation import AIRecommendation
+
+@router.get("/{scan_id}/report")
+async def get_scan_report(
+    scan_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    scan = db.query(ScanHistory).filter(ScanHistory.id == scan_id).first()
+    if not scan or scan.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Scan not found")
+        
+    product = db.query(Product).filter(Product.id == scan.product_id).first()
+    scan_data = {
+        "scan_id": scan.id,
+        "product_name": product.product_name if product else "Unknown"
+    }
+    
+    # Get Profile & Analytics
+    profile = profile_service.get_profile(db, current_user.id)
+    profile_dict = profile.get("profile", {})
+    if hasattr(profile_dict, "__dict__"):
+        profile_dict = {k: v for k, v in profile_dict.__dict__.items() if not k.startswith('_')}
+
+    analytics = profile_analytics_service.get_latest_analytics(db, current_user.id)
+    
+    # Get Recommendation
+    recommendation = db.query(AIRecommendation).filter(AIRecommendation.scan_id == scan_id).first()
+    rec_dict = {}
+    if recommendation:
+        rec_dict = {
+            "health_score": recommendation.health_score,
+            "processing_level": recommendation.processing_level,
+            "processing_reason": recommendation.processing_reason,
+            "score_breakdown": recommendation.score_breakdown or {},
+            "goal_compatibility": recommendation.goal_compatibility or {},
+            "recommendations": recommendation.recommendations or [],
+            "healthier_alternatives": recommendation.healthier_alternatives or []
+        }
+        
+    # Generate PDF
+    try:
+        pdf_path = pdf_service.generate_report(profile_dict, analytics, scan_data, rec_dict, scan.extracted_json or {})
+        return FileResponse(pdf_path, media_type='application/pdf', filename=f"Calyros_Nutrition_Report.pdf")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF report: {e}")
+
+from app.schemas.comparison import ComparisonRequest
+from app.services.comparison_service import comparison_service
+
+@router.post("/compare")
+async def compare_products(
+    payload: ComparisonRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        result = await comparison_service.compare_products(
+            db=db,
+            scan_id_1=payload.scan_id_1,
+            scan_id_2=payload.scan_id_2,
+            user_id=current_user.id
+        )
+        return {"success": True, "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from app.services.alternatives_service import alternatives_service
+
+@router.get("/{scan_id}/alternatives")
+async def get_better_alternatives(
+    scan_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        result = await alternatives_service.get_alternatives(
+            db=db,
+            scan_id=scan_id,
+            user_id=current_user.id
+        )
+        return {"success": True, "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from app.services.insights_service import insights_service
+
+@router.get("/insights/dashboard")
+async def get_dashboard_insights(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        result = await insights_service.generate_insights(db=db, user_id=current_user.id)
+        return {"success": True, "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

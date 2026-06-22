@@ -53,15 +53,7 @@ class RecommendationService:
         score = db.query(FoodScore).filter(FoodScore.scan_id == scan_id).first()
         profile = profile_service.get_profile(db, user_id)
 
-        # 4. Generate AI Advice
-        score_data = {
-            "overall_score": score.overall_score,
-            "classification": score.classification,
-            "warnings": score.warnings,
-            "flags": score.flags
-        }
-        
-        facts_dict = {k: v for k, v in facts.__dict__.items() if not k.startswith('_')} if facts else {}
+        extracted_data = scan.extracted_json if scan.extracted_json else {}
         
         # profile is a dict that might contain SQLAlchemy models like 'user'
         profile_dict = {}
@@ -77,24 +69,23 @@ class RecommendationService:
         # In a real async scenario, we can run these concurrently. Running sequentially here for simplicity.
         advice = await health_advisor.generate_advice(
             profile=profile_dict,
-            facts=facts_dict,
-            ingredients=ingredients,
-            score_data=score_data
+            extracted_data=extracted_data
         )
-        
-        explanations = await ingredient_explainer.explain_ingredients(ingredients)
-        alternatives = alternative_service.get_healthier_alternatives(db, score.overall_score)
 
         # 5. Persist to Database
         recommendation = AIRecommendation(
             scan_id=scan_id,
-            health_summary=advice.get("health_summary"),
-            positives=advice.get("positives", []),
+            health_score=advice.get("health_score"),
+            summary=advice.get("summary"),
+            strengths=advice.get("strengths", []),
             concerns=advice.get("concerns", []),
-            ingredient_explanations=explanations,
-            alternatives=alternatives,
-            consumption_guidance=advice.get("consumption_guidance"),
-            ai_summary=advice.get("ai_summary")
+            score_breakdown=advice.get("score_breakdown", {}),
+            goal_compatibility=advice.get("goal_compatibility", {}),
+            disease_compatibility=advice.get("disease_compatibility", {}),
+            processing_level=extracted_data.get("processing_level"),
+            processing_reason=extracted_data.get("processing_reason"),
+            recommendations=advice.get("recommendations", []),
+            healthier_alternatives=advice.get("healthier_alternatives", [])
         )
         db.add(recommendation)
         db.commit()

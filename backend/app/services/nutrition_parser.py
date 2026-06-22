@@ -22,23 +22,33 @@ class NutritionParser:
         
         # 1. Base Product Data
         product_name = raw_data.get("product_name") or "Unknown Product"
-        brand = raw_data.get("brand")
+        brand = raw_data.get("brand_name")
         serving_size = raw_data.get("serving_size")
+        raw_text = raw_data.get("raw_text", "")
         
         # 2. Base Nutrition Facts (try to extract floats for backward DB compatibility where needed)
         raw_facts = raw_data.get("nutrition_facts", {})
         nutrition_facts = {}
         # Keep basic DB compatibility fields while saving everything dynamic
-        db_fields = ["calories", "protein", "carbohydrates", "sugar", "fiber", "sodium", "total_fat", "saturated_fat", "trans_fat"]
+        db_fields = ["calories", "protein", "carbohydrates", "sugar", "fiber", "sodium", "total_fat", "saturated_fat", "trans_fat", "added_sugar"]
         
-        # We will parse out raw facts directly, doing basic float conversion for known DB fields
+        # Map new suffix names to db fields
+        key_mapping = {
+            "protein_g": "protein",
+            "fat_g": "total_fat",
+            "saturated_fat_g": "saturated_fat",
+            "trans_fat_g": "trans_fat",
+            "carbohydrates_g": "carbohydrates",
+            "fiber_g": "fiber",
+            "sugar_g": "sugar",
+            "added_sugar_g": "added_sugar",
+            "sodium_mg": "sodium"
+        }
+        
         for k, v in raw_facts.items():
-            k_lower = k.lower().replace("_g", "").replace("_mg", "")
-            if k_lower == "carbs": k_lower = "carbohydrates"
-            if k_lower == "fat": k_lower = "total_fat"
-            
-            if k_lower in db_fields:
-                nutrition_facts[k_lower] = NutritionParser._safe_float(v)
+            mapped_k = key_mapping.get(k, k)
+            if mapped_k in db_fields:
+                nutrition_facts[mapped_k] = NutritionParser._safe_float(v)
             else:
                 nutrition_facts[k] = v
 
@@ -47,12 +57,15 @@ class NutritionParser:
             if db_f not in nutrition_facts:
                 nutrition_facts[db_f] = 0.0
 
-        # 3. Dynamic Discovery Dictionaries
-        vitamins = raw_data.get("vitamins", {})
-        minerals = raw_data.get("minerals", {})
-        amino_acids = raw_data.get("amino_acids", {})
+        # 3. Dynamic Arrays of Dicts
+        def parse_obj_array(raw_arr) -> List[Dict[str, Any]]:
+            if isinstance(raw_arr, list):
+                return [i for i in raw_arr if isinstance(i, dict)]
+            return []
 
-        # 4. Arrays
+        ingredient_intelligence = parse_obj_array(raw_data.get("ingredient_intelligence", []))
+
+        # 4. Arrays of Strings
         def parse_array(raw_arr) -> List[str]:
             if isinstance(raw_arr, list):
                 return [str(i).strip() for i in raw_arr if str(i).strip()]
@@ -62,8 +75,10 @@ class NutritionParser:
 
         ingredients = parse_array(raw_data.get("ingredients", []))
         allergens = parse_array(raw_data.get("allergens", []))
-        additives = parse_array(raw_data.get("additives", []))
-        claims = parse_array(raw_data.get("claims", []))
+        food_additives = parse_array(raw_data.get("food_additives", []))
+        preservatives = parse_array(raw_data.get("preservatives", []))
+        artificial_colors = parse_array(raw_data.get("artificial_colors", []))
+        artificial_sweeteners = parse_array(raw_data.get("artificial_sweeteners", []))
             
         return {
             "product_name": str(product_name),
@@ -71,12 +86,15 @@ class NutritionParser:
             "serving_size": str(serving_size) if serving_size else None,
             "nutrition_facts": nutrition_facts,
             "ingredients": ingredients,
-            "vitamins": vitamins,
-            "minerals": minerals,
-            "amino_acids": amino_acids,
             "allergens": allergens,
-            "additives": additives,
-            "claims": claims
+            "ingredient_intelligence": ingredient_intelligence,
+            "food_additives": food_additives,
+            "preservatives": preservatives,
+            "artificial_colors": artificial_colors,
+            "artificial_sweeteners": artificial_sweeteners,
+            "processing_level": raw_data.get("processing_level", ""),
+            "processing_reason": raw_data.get("processing_reason", ""),
+            "raw_text": raw_text
         }
 
     @staticmethod

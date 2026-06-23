@@ -25,6 +25,7 @@ class ScanService:
             mime_type = "image/jpeg"
             
         try:
+            storage_res = {}
             import time
             import asyncio
             from datetime import datetime, timezone

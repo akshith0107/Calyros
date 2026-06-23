@@ -341,7 +341,7 @@ class ChatService:
             return event_generator_fallback()
 
         # Get profile
-        profile_dict = profile_service.get_profile(db, user_id)
+        profile_dict = profile_service.get_profile(db, user_id) or {}
         prof = profile_dict.get("profile")
         algy = profile_dict.get("allergies")
         

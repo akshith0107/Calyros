@@ -132,7 +132,7 @@ class InsightsService:
         top_nutrients.sort(key=lambda x: x["amount"], reverse=True)
 
         # Profile context
-        profile_dict = profile_service.get_profile(db, user_id)
+        profile_dict = profile_service.get_profile(db, user_id) or {}
         prof = profile_dict.get("profile")
         health_goal = getattr(prof, "health_goal", "general") if prof else "general"
 

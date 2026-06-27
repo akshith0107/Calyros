@@ -14,7 +14,7 @@ router = APIRouter()
 from app.core.exceptions import ProfileNotFoundError
 
 @router.get("/me")
-async def get_my_profile(
+def get_my_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -33,7 +33,7 @@ async def get_my_profile(
     }
 
 @router.post("/create")
-async def create_profile(
+def create_profile(
     payload: ProfileOnboardingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -50,7 +50,7 @@ async def create_profile(
         raise HTTPException(status_code=500, detail=f"Failed to create profile: {str(e)}")
 
 @router.put("/me")
-async def update_my_profile(
+def update_my_profile(
     payload: ProfileOnboardingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -65,7 +65,7 @@ async def update_my_profile(
         raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
 
 @router.delete("/me")
-async def delete_my_profile(
+def delete_my_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -75,7 +75,7 @@ async def delete_my_profile(
     raise ProfileNotFoundError("Profile not found or already deleted")
 
 @router.get("/me/completion")
-async def get_my_profile_completion(
+def get_my_profile_completion(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -86,7 +86,7 @@ async def get_my_profile_completion(
     }
 
 @router.get("/me/health-summary")
-async def get_my_health_summary(
+def get_my_health_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -99,7 +99,7 @@ async def get_my_health_summary(
 from app.services.profile_analytics_service import profile_analytics_service
 
 @router.get("/me/analytics")
-async def get_my_analytics(
+def get_my_analytics(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

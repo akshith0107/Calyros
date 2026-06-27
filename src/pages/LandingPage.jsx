@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, animate, useInView } from 'framer-motion';
 import { 
-  Scan, Activity, Brain, ArrowRight, ChevronRight, 
-  Leaf, ShieldCheck, Cpu, Database, Blocks, CheckCircle2, 
-  XCircle, FileSearch, Zap, Code
+  Scan, ArrowRight, Eye, Blocks, HeartPulse, Activity, Leaf, MessageSquare, Database, Sparkles
 } from 'lucide-react';
 import DNAParticleSystem from '../components/DNAParticleSystem';
+import { useAuth } from '../contexts/AuthContext';
 
 /* --- Shared Components --- */
 const GlassCard = ({ children, className = '' }) => (
-  <div className={`bg-[#101010] border border-white/[0.08] rounded-xl ${className}`}>
-    {children}
+  <div className={`relative bg-[#080808] border border-white/[0.15] rounded-[24px] overflow-hidden group transition-all duration-500 hover:border-white/[0.25] shadow-[0_0_15px_rgba(255,255,255,0.03)] hover:shadow-[0_0_40px_rgba(109,94,245,0.12)] ${className}`}>
+    <div className="absolute inset-0 bg-grain pointer-events-none" />
+    {/* Subtle Purple card hover glow */}
+    <div className="absolute inset-0 bg-gradient-to-br from-[#6D5EF5]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+    <div className="relative z-10">{children}</div>
   </div>
 );
 
@@ -31,36 +33,32 @@ const LandingNavbar = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b ${
-        scrolled ? 'bg-[#050505]/90 backdrop-blur-md border-white/[0.08] py-4' : 'bg-transparent border-transparent py-6'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
+        scrolled ? 'bg-[#050505]/70 backdrop-blur-xl border-b border-white/[0.05] py-4' : 'bg-transparent py-8'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 flex items-center justify-center">
-            <Scan size={20} className="text-white" />
+        <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+          <div className="w-8 h-8 flex items-center justify-center border border-white/[0.1] rounded-full group-hover:border-white/[0.3] transition-colors bg-[#080808]">
+            <Scan size={14} className="text-white" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-white uppercase letter-spacing-wide">Calyros AI</span>
+          <span className="font-sans font-medium text-sm tracking-widest text-white uppercase">Calyros AI</span>
         </div>
         
-        <div className="hidden md:flex items-center gap-10 text-xs tracking-wider uppercase font-semibold text-[#A1A1A1]">
-          <a href="#features" className="hover:text-white transition-colors">Features</a>
-          <a href="#technology" className="hover:text-white transition-colors">Technology</a>
-          <a href="#about" className="hover:text-white transition-colors">About</a>
+        <div className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.2em] uppercase font-medium text-[rgba(255,255,255,0.48)]">
+          <a href="#platform" className="hover:text-white transition-colors">Platform</a>
+          <a href="#architecture" className="hover:text-white transition-colors">Architecture</a>
         </div>
 
         <div className="flex items-center gap-6">
-          <Link to="/login" className="text-sm font-medium text-[#A1A1A1] hover:text-white transition-colors hidden sm:block">
-            Sign In
-          </Link>
           <button 
             onClick={() => {
               try { localStorage.removeItem('nutrimind_onboarding'); } catch(e) {}
               navigate('/onboarding/age');
             }}
-            className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-[#EAEAEA] transition-colors rounded-md"
+            className="px-6 py-2.5 text-xs font-semibold tracking-wider uppercase bg-white text-black hover:bg-white/90 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all rounded-full"
           >
-            Get Started
+            Launch App
           </button>
         </div>
       </div>
@@ -70,66 +68,102 @@ const LandingNavbar = () => {
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const handleSignIn = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
-    <section className="relative min-h-screen pt-32 pb-20 flex flex-col justify-center overflow-hidden">
-      {/* Background visual: Monochromatic DNA */}
-      <div className="absolute inset-0 z-0">
-        <DNAParticleSystem className="opacity-70" />
+    <section className="relative min-h-[100vh] pt-32 pb-20 flex flex-col justify-center overflow-hidden bg-[#050505]">
+      {/* Massive Purple Accent Glow */}
+      <div className="glow-purple-massive" />
+      
+      {/* Background Grain & Grid */}
+      <div className="absolute inset-0 bg-grain pointer-events-none z-10" />
+      <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none z-0" />
+
+      {/* Center-Right Crisp DNA Helix */}
+      <div className="absolute inset-y-0 right-0 w-full md:w-[60%] z-20 flex items-center justify-end">
+        <DNAParticleSystem className="scale-125" />
       </div>
       
-      <div className="max-w-7xl mx-auto px-6 relative z-10 w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <div className="max-w-xl">
+      <div className="max-w-7xl mx-auto px-6 relative z-30 w-full">
+        <div className="max-w-2xl">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="mb-8"
           >
-            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-white mb-6 leading-[1.1]">
-              Nutrition Intelligence, <br className="hidden md:block" />
-              Built Around You.
+            <span className="px-4 py-2 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#9F7AEA] text-[10px] font-semibold tracking-widest uppercase">
+              AI Nutrition Intelligence
+            </span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <h1 className="text-6xl md:text-[5.5rem] font-sans font-bold tracking-tight text-white mb-6 leading-[1.05]">
+              Understand Every Food <br />
+              <span className="font-serif italic text-white/90 font-light">for </span> 
+              <span className="font-serif italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-[#9F7AEA]">absolute health.</span>
             </h1>
           </motion.div>
 
           <motion.p 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            className="text-lg text-[#A1A1A1] mb-10 leading-relaxed font-light"
+            transition={{ duration: 1.2, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-lg md:text-xl text-[rgba(255,255,255,0.72)] mb-12 leading-relaxed font-sans font-light max-w-xl"
           >
-            Analyze ingredients, nutrition labels, additives, allergens and health impact through AI-powered personalized nutrition intelligence.
+            Calyros AI combines multimodal vision, nutrition science, ingredient intelligence, and personalized health analysis to transform every nutrition label into actionable insights tailored specifically to your health profile.
           </motion.p>
 
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row items-center gap-4 mb-16"
+            transition={{ duration: 1.2, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            className="flex flex-col sm:flex-row items-center gap-6 mb-12"
           >
             <button 
               onClick={() => {
                 try { localStorage.removeItem('nutrimind_onboarding'); } catch(e) {}
                 navigate('/onboarding/age');
               }}
-              className="w-full sm:w-auto px-8 py-3 bg-white text-black hover:bg-[#EAEAEA] transition-colors rounded-md font-medium text-sm"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-black hover:bg-white/90 transition-all rounded-full font-semibold text-sm tracking-wide flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
             >
-              Start Scanning
+              Start Scanning <Scan size={16} />
             </button>
             <a 
-              href="#product"
-              className="w-full sm:w-auto px-8 py-3 bg-transparent border border-white/[0.15] hover:border-white/40 text-white transition-colors rounded-md font-medium text-sm text-center"
+              href="#architecture"
+              className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/[0.15] text-[rgba(255,255,255,0.72)] hover:text-white hover:border-white/[0.3] transition-colors rounded-full font-medium text-sm tracking-wide flex items-center justify-center gap-3"
             >
-              View Demo
+              View Architecture <ArrowRight size={16} />
             </a>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, delay: 0.8 }}
-            className="flex items-center gap-4 text-xs font-medium tracking-widest uppercase text-[#555555]"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            className="flex flex-col sm:flex-row items-center gap-4 mb-20 p-5 rounded-2xl bg-[#0A0A0A] border border-white/[0.05]"
           >
-            <div className="h-[1px] w-8 bg-[#333333]" />
-            Trusted Nutrition Intelligence Platform
+            <span className="text-[13px] font-medium text-[rgba(255,255,255,0.48)]">
+              Already created your health profile?
+            </span>
+            <button
+              onClick={handleSignIn}
+              className="px-6 py-2 border border-white/[0.15] text-[rgba(255,255,255,0.8)] hover:text-white hover:bg-white/[0.05] hover:border-white/[0.3] transition-all duration-300 rounded-full font-medium text-sm flex items-center gap-2"
+            >
+              Sign In <ArrowRight size={14} />
+            </button>
           </motion.div>
         </div>
       </div>
@@ -137,203 +171,340 @@ const HeroSection = () => {
   );
 };
 
-const PremiumProductPreview = () => {
-  return (
-    <section id="product" className="py-24 relative z-20 bg-[#050505]">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1 }}
-          className="rounded-xl border border-white/[0.08] bg-[#0B0B0B] overflow-hidden"
-        >
-          {/* Header Bar */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.08] bg-[#080808]">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#333333]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#333333]" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#333333]" />
-            </div>
-            <div className="text-[10px] font-medium tracking-widest uppercase text-[#555555] flex items-center gap-2">
-              <Scan size={10} /> Scan Result
-            </div>
-            <div className="w-8" />
-          </div>
-          
-          {/* Dashboard Body */}
-          <div className="p-8 md:p-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-1 flex flex-col gap-8">
-              <GlassCard className="p-8 flex flex-col items-center justify-center text-center">
-                <div className="w-28 h-28 rounded-full border-[3px] border-[#333333] flex items-center justify-center mb-6 relative">
-                  <span className="text-5xl font-light text-white">81</span>
-                  {/* Static minimalist indicator instead of spinning loader */}
-                  <div className="absolute top-0 right-0 w-3 h-3 rounded-full bg-white" />
-                </div>
-                <h3 className="text-sm font-semibold text-white tracking-wide uppercase mb-2">Health Score</h3>
-                <p className="text-xs text-[#A1A1A1] leading-relaxed">Optimal configuration for Weight Loss goal parameters.</p>
-              </GlassCard>
-              
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-[#555555] uppercase tracking-widest">Detected Variances</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center bg-[#0B0B0B] border border-white/[0.05] px-4 py-3 rounded-lg">
-                    <span className="text-xs text-[#A1A1A1]">Added Sugar</span>
-                    <span className="text-xs font-semibold text-white">12g</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-[#0B0B0B] border border-white/[0.05] px-4 py-3 rounded-lg">
-                    <span className="text-xs text-[#A1A1A1]">Soy Lecithin</span>
-                    <span className="text-xs font-semibold text-white">Additive</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="md:col-span-2 flex flex-col gap-8">
-              <GlassCard className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <h4 className="text-sm font-semibold tracking-wide uppercase text-white flex items-center gap-3">
-                    <Activity size={16} className="text-[#A1A1A1]" /> Nutritional Vector
-                  </h4>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    { label: 'Calories', val: '240', unit: 'kcal' },
-                    { label: 'Protein', val: '18', unit: 'g' },
-                    { label: 'Carbs', val: '22', unit: 'g' },
-                    { label: 'Fat', val: '8', unit: 'g' },
-                  ].map((n, i) => (
-                    <div key={i} className="border-l border-white/[0.08] pl-5 py-2">
-                      <div className="text-2xl font-light text-white mb-1">{n.val}<span className="text-[10px] text-[#555555] ml-1">{n.unit}</span></div>
-                      <div className="text-[10px] text-[#A1A1A1] font-bold uppercase tracking-widest">{n.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </GlassCard>
+/* --- Bento Custom Illustrations --- */
+const IllusScanner = () => (
+  <div className="relative w-full h-48 flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-[#6D5EF5]/0 to-[#6D5EF5]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+    <motion.div 
+      animate={{ y: [-5, 5, -5] }} 
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      className="w-32 h-40 border border-white/[0.15] bg-white/[0.02] backdrop-blur-md rounded-lg p-3 flex flex-col gap-2 relative shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+    >
+      <div className="w-full h-2 bg-white/20 rounded-full" />
+      <div className="w-3/4 h-2 bg-white/10 rounded-full" />
+      <div className="w-full h-[1px] bg-white/10 my-1" />
+      <div className="w-1/2 h-2 bg-white/10 rounded-full" />
+      <div className="w-5/6 h-2 bg-white/10 rounded-full" />
+      
+      {/* Scanning Beam */}
+      <motion.div 
+        animate={{ top: ['0%', '100%', '0%'] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute left-0 right-0 h-[2px] bg-[#8B5CF6] shadow-[0_0_15px_#8B5CF6] z-10"
+      />
+    </motion.div>
+  </div>
+);
 
-              <GlassCard className="p-8">
-                <h4 className="text-sm font-semibold tracking-wide uppercase text-white mb-6 flex items-center gap-3">
-                  <Brain size={16} className="text-[#A1A1A1]" /> Intelligence Output
-                </h4>
-                <p className="text-sm text-[#A1A1A1] leading-relaxed mb-6">
-                  Based on target goal [Muscle Gain], this product provides an optimal protein-to-calorie ratio. The presence of whey isolate ensures high bioavailability. Recommended pairing with complex carbohydrates to mitigate deficit.
-                </p>
-                <div className="flex gap-3">
-                  <span className="px-3 py-1.5 bg-white/5 border border-white/[0.08] rounded text-[10px] tracking-wider uppercase font-semibold text-[#A1A1A1]">Muscle Gain Support</span>
-                  <span className="px-3 py-1.5 bg-white/5 border border-white/[0.08] rounded text-[10px] tracking-wider uppercase font-semibold text-[#A1A1A1]">High Bioavailability</span>
-                </div>
-              </GlassCard>
-            </div>
-          </div>
-        </motion.div>
+const IllusIngredients = () => (
+  <div className="relative w-full h-48 flex items-center justify-center perspective-[1000px]">
+    {[0, 1, 2].map((i) => (
+      <motion.div
+        key={i}
+        animate={{ y: [-i * 5, -i * 5 - 10, -i * 5] }}
+        transition={{ duration: 3, delay: i * 0.2, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute w-40 h-24 border border-white/[0.1] rounded-xl bg-[#080808]/80 backdrop-blur-md flex items-center justify-center"
+        style={{ 
+          transform: `rotateX(60deg) rotateZ(-45deg) translateZ(${i * 20}px)`,
+          borderColor: i === 2 ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'
+        }}
+      >
+        {i === 2 && <div className="w-8 h-8 rounded-full border-[2px] border-[#8B5CF6] shadow-[0_0_15px_rgba(139,92,246,0.5)]" />}
+      </motion.div>
+    ))}
+  </div>
+);
+
+const IllusHealthProfile = () => (
+  <div className="relative w-full h-48 flex items-center justify-center">
+    <div className="w-16 h-16 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center z-10">
+      <div className="w-6 h-6 rounded-full bg-white/20" />
+      <div className="absolute top-10 w-8 h-8 bg-white/20 rounded-t-full" />
+    </div>
+    
+    <motion.div 
+      animate={{ rotate: 360 }}
+      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      className="absolute w-32 h-32 border border-white/[0.05] rounded-full"
+    >
+      <div className="absolute top-0 left-1/2 w-2 h-2 bg-[#8B5CF6] rounded-full shadow-[0_0_10px_#8B5CF6] transform -translate-x-1/2 -translate-y-1/2" />
+    </motion.div>
+    <motion.div 
+      animate={{ rotate: -360 }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      className="absolute w-40 h-40 border border-white/[0.05] rounded-full"
+    >
+      <div className="absolute bottom-0 left-1/2 w-2 h-2 bg-white/40 rounded-full transform -translate-x-1/2 translate-y-1/2" />
+    </motion.div>
+  </div>
+);
+
+const IllusScoring = () => (
+  <div className="relative w-full h-48 flex items-center justify-center">
+    <svg width="120" height="120" viewBox="0 0 120 120" className="transform -rotate-90">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+      <motion.circle 
+        cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" strokeWidth="8"
+        strokeDasharray="314"
+        initial={{ strokeDashoffset: 314 }}
+        whileInView={{ strokeDashoffset: 314 - (314 * 0.98) }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        strokeLinecap="round"
+      />
+      <defs>
+        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8B5CF6" />
+          <stop offset="100%" stopColor="#6D5EF5" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <div className="absolute flex flex-col items-center">
+      <span className="text-2xl font-light text-white">98</span>
+      <span className="text-[8px] tracking-widest text-white/50 uppercase">Score</span>
+    </div>
+  </div>
+);
+
+const IllusChat = () => (
+  <div className="relative w-full h-48 flex flex-col justify-center gap-4 px-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+      className="self-end bg-white/[0.05] border border-white/[0.1] rounded-2xl rounded-tr-none px-4 py-2 text-xs text-white/80 max-w-[80%]"
+    >
+      Can I eat this daily?
+    </motion.div>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+      className="self-start bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 rounded-2xl rounded-tl-none px-4 py-3 text-xs text-white/90 max-w-[90%] shadow-[0_0_20px_rgba(139,92,246,0.1)]"
+    >
+      Based on your profile, it's high in added sugar. I'd recommend a whole-food alternative.
+    </motion.div>
+  </div>
+);
+
+const IllusAlternatives = () => (
+  <div className="relative w-full h-48 flex items-center justify-center gap-4">
+    <div className="w-20 h-24 border border-white/[0.1] bg-white/[0.02] rounded-lg flex items-center justify-center">
+      <div className="w-8 h-8 rounded bg-white/10" />
+    </div>
+    <motion.div 
+      animate={{ x: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity }}
+      className="text-white/30"
+    >
+      <ArrowRight size={16} />
+    </motion.div>
+    <div className="w-24 h-28 border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 rounded-lg flex flex-col items-center justify-center relative shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+      <div className="absolute -top-2 px-2 py-0.5 bg-[#8B5CF6] text-white text-[8px] font-bold uppercase rounded-full tracking-widest">Optimal</div>
+      <div className="w-10 h-10 rounded-full bg-white/20 mb-2" />
+      <div className="w-12 h-1.5 bg-white/30 rounded-full" />
+    </div>
+  </div>
+);
+
+const IllusAnalytics = () => (
+  <div className="relative w-full h-48 flex items-end justify-center px-8 pb-8">
+    <div className="absolute inset-0 bg-gradient-to-t from-[#8B5CF6]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+    <svg width="100%" height="80" viewBox="0 0 200 80" preserveAspectRatio="none">
+      <motion.path 
+        d="M0,80 C40,40 60,60 100,20 C140,-20 160,40 200,10 L200,80 Z"
+        fill="url(#graphGrad)"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      />
+      <motion.path 
+        d="M0,80 C40,40 60,60 100,20 C140,-20 160,40 200,10"
+        fill="none" stroke="#8B5CF6" strokeWidth="2"
+        initial={{ pathLength: 0 }}
+        whileInView={{ pathLength: 1 }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
+      />
+      <defs>
+        <linearGradient id="graphGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="rgba(139,92,246,0.3)" />
+          <stop offset="100%" stopColor="rgba(139,92,246,0)" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+);
+
+const IllusVault = () => (
+  <div className="relative w-full h-48 flex items-center justify-center">
+    <motion.div 
+      animate={{ y: [-3, 3, -3] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      className="w-20 h-24 border border-white/[0.15] bg-gradient-to-b from-white/[0.05] to-transparent rounded-xl backdrop-blur-md flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+    >
+      <div className="w-6 h-6 rounded-full border-2 border-[#8B5CF6] flex items-center justify-center">
+        <div className="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full" />
       </div>
-    </section>
-  );
-};
+    </motion.div>
+  </div>
+);
 
-const FeatureHighlights = () => {
-  const features = [
-    { icon: FileSearch, title: 'Nutrition Analysis', desc: 'Extract and structure macros and micronutrients from any label instantly.' },
-    { icon: Blocks, title: 'Ingredient Intelligence', desc: 'Identify hidden additives, refined oils, and ultra-processed components.' },
-    { icon: ShieldCheck, title: 'Allergen Detection', desc: 'Automatic flagging of specific allergens mapped to your personal profile.' },
-    { icon: Activity, title: 'Condition Awareness', desc: 'Scores adapted dynamically based on precise metabolic and dietary goals.' },
-    { icon: Brain, title: 'AI Nutrition Assistant', desc: 'Query your scanned food directly via natural language processing.' },
-    { icon: Leaf, title: 'Smart Alternatives', desc: 'Discover algorithmically matched whole-food equivalents.' },
-  ];
+const IllusIntegrations = () => (
+  <div className="relative w-full h-48 flex items-center justify-center gap-6 px-10">
+    {['Vision AI', 'OCR', 'Intelligence'].map((lbl, i) => (
+      <React.Fragment key={i}>
+        <div className="w-24 h-12 border border-[#8B5CF6]/30 bg-[#8B5CF6]/5 rounded-lg flex items-center justify-center text-[9px] text-[#8B5CF6] uppercase tracking-widest font-semibold shadow-[0_0_15px_rgba(139,92,246,0.1)]">
+          {lbl}
+        </div>
+        {i < 2 && (
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-[#8B5CF6]/50 to-[#8B5CF6]/10 relative">
+            <motion.div 
+              animate={{ x: ['0%', '100%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="absolute top-1/2 transform -translate-y-1/2 w-1.5 h-1.5 bg-[#8B5CF6] shadow-[0_0_5px_#8B5CF6] rounded-full"
+            />
+          </div>
+        )}
+      </React.Fragment>
+    ))}
+  </div>
+);
 
+const BentoCard = ({ title, desc, Illustration, className = "" }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.97, y: 15 }}
+    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+    className={className}
+  >
+    <GlassCard className="h-full flex flex-col">
+      <Illustration />
+      <div className="p-8 pt-0 flex-1 flex flex-col justify-end">
+        <h3 className="text-lg font-medium text-white mb-2 tracking-wide">{title}</h3>
+        <p className="text-[rgba(255,255,255,0.48)] text-sm leading-relaxed font-light">{desc}</p>
+      </div>
+    </GlassCard>
+  </motion.div>
+);
+
+const PlatformOverview = () => {
   return (
-    <section id="features" className="py-32 relative bg-[#0B0B0B] border-y border-white/[0.05]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="mb-20">
-          <h2 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">Core Infrastructure</h2>
+    <section id="platform" className="py-32 bg-[#050505] relative z-20">
+      <div className="absolute inset-0 bg-grain pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        
+        {/* Section Header */}
+        <div className="mb-24 flex flex-col items-center text-center">
+          <span className="px-3 py-1.5 rounded-full border border-white/[0.1] bg-white/[0.02] text-[rgba(255,255,255,0.48)] text-[9px] font-semibold tracking-[0.2em] uppercase mb-8">
+            AI Capabilities
+          </span>
+          <h2 className="text-4xl md:text-5xl font-sans font-bold tracking-tight text-white leading-tight">
+            Built for Nutrition Intelligence. <br/>
+            <span className="font-serif italic font-medium text-[#9F7AEA]">Designed for You.</span>
+          </h2>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 1 }}
-            >
-              <GlassCard className="p-8 h-full hover:bg-white/[0.02] transition-colors group">
-                <feat.icon size={20} className="text-white mb-8" strokeWidth={1.5} />
-                <h3 className="text-base font-medium text-white mb-3">{feat.title}</h3>
-                <p className="text-[#A1A1A1] text-sm leading-relaxed font-light">{feat.desc}</p>
-              </GlassCard>
-            </motion.div>
-          ))}
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
+          <BentoCard 
+            title="AI Nutrition Scanner" 
+            desc="Scan any nutrition label using our multimodal AI for instant nutrient extraction." 
+            Illustration={IllusScanner} 
+            className="md:col-span-1 md:row-span-2" 
+          />
+          <BentoCard 
+            title="Ingredient Intelligence" 
+            desc="Detect additives, preservatives, allergens, artificial ingredients, and processing level." 
+            Illustration={IllusIngredients} 
+            className="md:col-span-2" 
+          />
+          <BentoCard 
+            title="Personalized Health Profile" 
+            desc="Recommendations adapt to age, allergies, medical conditions, and fitness goals." 
+            Illustration={IllusHealthProfile} 
+          />
+          <BentoCard 
+            title="Nutrition Scoring Engine" 
+            desc="Scientific AI health scoring based on nutrient balance and user profile." 
+            Illustration={IllusScoring} 
+          />
+          <BentoCard 
+            title="AI Nutrition Chat" 
+            desc="Ask follow-up nutrition questions naturally. Powered by advanced reasoning." 
+            Illustration={IllusChat} 
+            className="md:col-span-1 md:row-span-2" 
+          />
+          <BentoCard 
+            title="Healthy Alternatives" 
+            desc="Algorithmically suggests healthier products and whole-food replacements." 
+            Illustration={IllusAlternatives} 
+            className="md:col-span-2" 
+          />
+          <BentoCard 
+            title="Progress Analytics" 
+            desc="Track nutrition trends, scan history, health improvements, and dietary habits." 
+            Illustration={IllusAnalytics} 
+            className="md:col-span-2" 
+          />
+          <BentoCard 
+            title="Secure & Private" 
+            desc="Enterprise-grade encryption with complete user privacy." 
+            Illustration={IllusVault} 
+          />
+          <BentoCard 
+            title="AI Integrations" 
+            desc="Seamlessly connected nodes processing your data in milliseconds." 
+            Illustration={IllusIntegrations} 
+            className="md:col-span-3" 
+          />
         </div>
+
       </div>
     </section>
   );
 };
 
-const WhyCalyrosSection = () => {
-  return (
-    <section className="py-32 relative">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="mb-20">
-          <h2 className="text-3xl md:text-5xl font-semibold text-white tracking-tight">Paradigm Shift</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-[1px] bg-white/[0.08] border border-white/[0.08] overflow-hidden rounded-xl">
-          {/* Traditional Apps */}
-          <div className="p-12 bg-[#050505]">
-            <h3 className="text-sm font-semibold tracking-widest uppercase text-[#555555] mb-10">
-              Traditional Food Apps
-            </h3>
-            <ul className="space-y-6">
-              {['Generic calorie counting', 'Static nutrition data', 'No ingredient intelligence', 'No health awareness'].map((item, i) => (
-                <li key={i} className="flex items-center gap-4 text-[#A1A1A1] text-sm">
-                  <XCircle size={16} className="text-[#333333] shrink-0" strokeWidth={1.5} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Calyros AI */}
-          <div className="p-12 bg-[#0A0A0A]">
-            <h3 className="text-sm font-semibold tracking-widest uppercase text-white mb-10">
-              Calyros AI
-            </h3>
-            <ul className="space-y-6">
-              {['Personalized recommendations', 'Ingredient intelligence', 'Health-condition aware', 'AI-powered reasoning'].map((item, i) => (
-                <li key={i} className="flex items-center gap-4 text-white text-sm">
-                  <CheckCircle2 size={16} className="text-white shrink-0" strokeWidth={1.5} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const TechnologySection = () => {
-  const tech = [
-    { name: 'Gemini Vision', icon: Scan },
-    { name: 'Groq Inference', icon: Zap },
-    { name: 'FastAPI', icon: Cpu },
-    { name: 'PostgreSQL', icon: Database },
-    { name: 'Supabase', icon: ShieldCheck },
-    { name: 'React', icon: Blocks },
+const ArchitectureTimeline = () => {
+  const nodes = [
+    'Image Upload',
+    'Vision Language Model',
+    'OCR',
+    'Nutrition Extraction',
+    'Ingredient Intelligence Engine',
+    'Personal Health Profile',
+    'Nutrition Scoring Engine',
+    'Recommendation Engine',
+    'AI Nutrition Chat',
+    'Personalized Insights'
   ];
 
   return (
-    <section id="technology" className="py-24 border-t border-white/[0.05] bg-[#050505]">
-      <div className="max-w-5xl mx-auto px-6 text-center">
-        <h2 className="text-xs font-bold tracking-widest uppercase text-[#555555] mb-12">Technology Stack</h2>
-        <div className="flex flex-wrap justify-center gap-8">
-          {tech.map((t, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <t.icon size={16} className="text-[#333333]" strokeWidth={1.5} />
-              <span className="text-sm font-medium text-[#A1A1A1]">{t.name}</span>
-            </div>
+    <section id="architecture" className="py-32 bg-[#080808] relative">
+      <div className="absolute inset-0 bg-grain pointer-events-none" />
+      <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none z-0" />
+      
+      <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
+        <h2 className="text-sm font-semibold tracking-[0.3em] uppercase text-[#666666] mb-20">Architecture Preview</h2>
+        
+        <div className="flex flex-col items-center">
+          {nodes.map((label, i) => (
+            <React.Fragment key={i}>
+              <motion.div 
+                initial={{ opacity: 0, filter: 'blur(10px)', y: 20 }}
+                whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                className={`w-full max-w-md p-6 border border-white/[0.08] rounded-2xl backdrop-blur-xl flex items-center justify-center shadow-lg transition-colors hover:border-white/[0.2] ${
+                  i === 0 || i === nodes.length - 1 ? 'bg-white/[0.05]' : 'bg-[#0A0A0A]'
+                }`}
+              >
+                <span className={`text-[15px] tracking-wide ${i === 0 || i === nodes.length - 1 ? 'font-semibold text-white' : 'font-medium text-[rgba(255,255,255,0.72)]'}`}>
+                  {label}
+                </span>
+              </motion.div>
+              {i < nodes.length - 1 && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  whileInView={{ height: 40, opacity: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="w-[1px] bg-gradient-to-b from-[#6D5EF5]/50 to-transparent my-1 origin-top"
+                />
+              )}
+            </React.Fragment>
           ))}
         </div>
       </div>
@@ -342,37 +513,81 @@ const TechnologySection = () => {
 };
 
 const LandingFooter = () => (
-  <footer className="py-12 border-t border-white/[0.05] bg-[#050505]">
-    <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+  <footer className="py-16 bg-[#050505] relative border-t border-white/[0.05]">
+    <div className="absolute inset-0 bg-grain pointer-events-none" />
+    <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
       <div className="flex items-center gap-3">
-        <Scan size={18} className="text-white" />
-        <span className="font-semibold text-sm tracking-widest uppercase text-white">Calyros AI</span>
+        <Scan size={14} className="text-white" />
+        <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-white">Calyros AI</span>
       </div>
-      
-      <div className="flex items-center gap-8 text-xs font-medium tracking-wider uppercase text-[#A1A1A1]">
-        <a href="#features" className="hover:text-white transition-colors">Features</a>
-        <a href="#technology" className="hover:text-white transition-colors">Technology</a>
-        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-        <a href="#" className="hover:text-white transition-colors">Contact</a>
-        <a href="#" className="hover:text-white transition-colors flex items-center gap-2"><Code size={14} /> GitHub</a>
-      </div>
-      
-      <div className="text-xs text-[#555555]">
-        © {new Date().getFullYear()} Calyros AI.
+      <div className="text-[10px] tracking-widest uppercase text-[rgba(255,255,255,0.48)]">
+        © {new Date().getFullYear()} Calyros AI. Built with absolute precision.
       </div>
     </div>
   </footer>
 );
 
+const AnimatedCounter = ({ from, to, suffix, decimals = 0 }) => {
+  const nodeRef = useRef(null);
+  const isInView = useInView(nodeRef, { once: true, margin: "-50px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+    const node = nodeRef.current;
+    
+    const controls = animate(from, to, {
+      duration: 2,
+      ease: "easeOut",
+      onUpdate(value) {
+        node.textContent = value.toFixed(decimals) + suffix;
+      },
+    });
+
+    return () => controls.stop();
+  }, [from, to, suffix, decimals, isInView]);
+
+  return <span ref={nodeRef} className="font-sans font-medium text-white">{from}{suffix}</span>;
+};
+
+const StatisticsStrip = () => {
+  return (
+    <section className="py-24 bg-[#050505] relative border-t border-white/[0.05]">
+      <div className="absolute inset-0 bg-grain pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 divide-y md:divide-y-0 md:divide-x divide-white/[0.08]">
+        {[
+          { label: 'Nutrition Labels Analyzed', to: 1, suffix: 'M+', decimals: 0 },
+          { label: 'Extraction Accuracy', to: 98.7, suffix: '%', decimals: 1 },
+          { label: 'Health Profiles', to: 50, suffix: 'K+', decimals: 0 },
+          { label: 'Insights Generated', to: 10, suffix: 'M+', decimals: 0 }
+        ].map((stat, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center justify-center text-center w-full py-6 md:py-0">
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.6 }}
+              className="text-4xl md:text-5xl font-light text-white mb-3"
+            >
+              <AnimatedCounter from={0} to={stat.to} suffix={stat.suffix} decimals={stat.decimals} />
+            </motion.div>
+            <span className="text-[11px] tracking-[0.15em] uppercase text-[rgba(255,255,255,0.48)] font-semibold">
+              {stat.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 export default function LandingPage() {
   return (
-    <div className="bg-[#050505] min-h-screen font-sans selection:bg-white selection:text-black overflow-x-hidden">
+    <div className="bg-[#050505] min-h-screen font-sans selection:bg-[#8B5CF6]/30 selection:text-white overflow-x-hidden">
       <LandingNavbar />
       <HeroSection />
-      <PremiumProductPreview />
-      <FeatureHighlights />
-      <WhyCalyrosSection />
-      <TechnologySection />
+      <PlatformOverview />
+      <StatisticsStrip />
+      <ArchitectureTimeline />
       <LandingFooter />
     </div>
   );

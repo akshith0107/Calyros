@@ -33,7 +33,7 @@ class ChatService:
         if scan.user_id != user_id:
             return "User does not have permission to view this scan."
 
-        product_name = scan.product_name or "Unknown Product"
+        product_name = scan.product.product_name if scan.product else "Unknown Product"
         analysis = scan.analysis_json or {}
         
         context = f"Product: {product_name}\n"
@@ -140,7 +140,7 @@ class ChatService:
         extracted = scan.extracted_json if scan.extracted_json else {}
         
         scan_context = json.dumps({
-            "product_name": scan.product_name or "Unknown Product",
+            "product_name": scan.product.product_name if scan.product else "Unknown Product",
             "nutrition_facts": extracted.get("nutrition_facts", {}),
             "ingredients": extracted.get("ingredients", []),
             "allergens": extracted.get("allergens", []),
@@ -269,7 +269,7 @@ class ChatService:
             extracted = scan.extracted_json if scan.extracted_json else {}
             facts = extracted.get("nutrition_facts", {})
             return {
-                "product_name": scan.product_name or "Unknown Product",
+                "product_name": scan.product.product_name if scan.product else "Unknown Product",
                 "health_score": analysis.get("score") or analysis.get("overall_score"),
                 "nutrition_facts": facts,
                 "ingredients": extracted.get("ingredients", []),
@@ -366,7 +366,7 @@ class ChatService:
         facts = extracted.get("nutrition_facts", {})
 
         latest_product = {
-            "product_name": latest_scan.product_name or "Unknown Product",
+            "product_name": latest_scan.product.product_name if latest_scan.product else "Unknown Product",
             "date_scanned": latest_scan.created_at.isoformat() if latest_scan.created_at else None
         }
 

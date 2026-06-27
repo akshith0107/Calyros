@@ -11,7 +11,7 @@ from app.models.food_score import FoodScore
 from app.services.profile_service import profile_service
 from app.services.health_advisor import health_advisor
 from app.services.ingredient_explainer import ingredient_explainer
-from app.services.alternative_service import alternative_service
+
 from app.schemas.recommendation import RecommendationResponse
 
 logger = logging.getLogger(__name__)

@@ -43,7 +43,7 @@ async def scan_nutrition_label(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 @router.get("/history/me", response_model=List[ScanHistoryListResponse])
-async def get_my_scan_history(
+def get_my_scan_history(
     skip: int = 0,
     limit: int = 20,
     db: Session = Depends(get_db),

@@ -86,19 +86,17 @@ class ScanService:
             scoring_start_ts = ts()
             scoring_start = time.time()
             
-            async def run_scoring():
-                return scoring_service.calculate_score(
-                    db=db, 
-                    scan_id=scan_id, 
-                    user_id=user_id,
-                    scan_history=result_payload["scan_history"],
-                    product=result_payload["product"],
-                    facts=result_payload["nutrition_facts"],
-                    ingredients=result_payload["ingredients"]
-                )
+            score_response = scoring_service.calculate_score(
+                db=db, 
+                scan_id=scan_id, 
+                user_id=user_id,
+                scan_history=result_payload["scan_history"],
+                product=result_payload["product"],
+                facts=result_payload["nutrition_facts"],
+                ingredients=result_payload["ingredients"]
+            )
 
-            score_response, _, _ = await asyncio.gather(
-                run_scoring(),
+            _, _ = await asyncio.gather(
                 recommendation_service.generate_recommendation(db, scan_id, user_id),
                 alternatives_service.get_alternatives(db, scan_id, user_id)
             )

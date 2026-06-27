@@ -7,8 +7,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { 
   useProfile, 
   useProfileAnalytics,
-  useScanHistory, 
-  useHealthInsights 
+  useScanHistory
 } from '../hooks/useDashboardData';
 
 import BMICard from '../components/dashboard/BMICard';

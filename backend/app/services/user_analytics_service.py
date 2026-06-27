@@ -52,7 +52,8 @@ class UserAnalyticsService:
         
         # We can simulate score trend over time by sorting by date
         score_trend = []
-        scores = db.query(FoodScore).join(ScanHistory, ScanHistory.id == FoodScore.scan_id).filter(ScanHistory.user_id == user_id).order_by(ScanHistory.created_at.asc()).limit(20).all()
+        from sqlalchemy.orm import joinedload
+        scores = db.query(FoodScore).options(joinedload(FoodScore.scan)).join(ScanHistory, ScanHistory.id == FoodScore.scan_id).filter(ScanHistory.user_id == user_id).order_by(ScanHistory.created_at.asc()).limit(20).all()
         
         for s in scores:
             score_trend.append({"score": s.overall_score, "date": s.scan.created_at.strftime("%b %d")})

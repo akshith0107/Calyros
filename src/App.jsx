@@ -3,7 +3,6 @@ import React, { Suspense, lazy } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { OnboardingProvider } from './hooks/useOnboardingStore';
 import { AuthProvider } from './contexts/AuthContext';
-import ParticleGrid from './components/ParticleGrid';
 import SkeletonLoader from './components/SkeletonLoader';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -91,7 +90,6 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <OnboardingProvider>
-          <ParticleGrid />
           <AnimatedRoutes />
         </OnboardingProvider>
       </AuthProvider>

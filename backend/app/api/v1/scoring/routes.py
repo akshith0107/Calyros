@@ -11,7 +11,7 @@ from app.api.deps import get_current_user
 router = APIRouter()
 
 @router.post("/calculate", response_model=dict)
-async def calculate_score(
+def calculate_score(
     payload: ScoreCalculateRequest = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -36,7 +36,7 @@ async def calculate_score(
         }
 
 @router.get("/{scan_id}", response_model=dict)
-async def get_score(
+def get_score(
     scan_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

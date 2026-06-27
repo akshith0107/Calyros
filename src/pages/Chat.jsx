@@ -149,42 +149,42 @@ export default function Chat() {
         className="flex-1 flex flex-col bg-[#080808]/90 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl mb-8 relative max-h-[80vh] mx-auto w-full max-w-5xl"
       >
         {/* Pinned Header */}
-        <div className="flex justify-between items-center p-6 border-b border-white/5 bg-[#050505]">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 md:p-6 border-b border-white/5 bg-[#050505] gap-4">
+          <div className="flex items-start md:items-center gap-4 md:gap-6 w-full">
             <button 
               onClick={() => navigate(-1)} 
-              className="p-3 text-white/40 hover:text-white rounded-full bg-white/5 transition-all hover:bg-white/10 border border-white/5"
+              className="p-3 text-white/40 hover:text-white rounded-full bg-white/5 transition-all hover:bg-white/10 border border-white/5 shrink-0"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
             </button>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <div>
-                <h1 className="text-white font-bold text-xl flex items-center gap-3 tracking-tight">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-4 w-full">
+              <div className="shrink-0">
+                <h1 className="text-white font-bold text-lg md:text-xl flex items-center gap-3 tracking-tight">
                   <div className="w-8 h-8 rounded-lg bg-[#FFFFFF]/10 border border-[#FFFFFF]/30 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                     <span className="w-2 h-2 rounded-full bg-[#FFFFFF] animate-pulse"></span>
                   </div>
                   Nutra AI Expert
                 </h1>
-                <p className="text-white/40 text-xs font-medium uppercase tracking-wider mt-1">
+                <p className="text-white/40 text-[10px] md:text-xs font-medium uppercase tracking-wider mt-1">
                   {scanId ? "Ask anything about your scanned product" : "Ask anything about nutrition and health"}
                 </p>
               </div>
               
               {/* Product Summary Context Card */}
               {scanData && (
-                <div className="md:ml-8 pl-0 md:pl-8 border-l-0 md:border-l border-white/10 flex items-center gap-4">
-                  <div>
-                    <div className="text-white/30 text-[10px] uppercase font-bold tracking-widest mb-0.5">Current Product</div>
-                    <div className="text-white font-semibold">{scanData.product_name}</div>
+                <div className="xl:ml-8 pl-0 xl:pl-8 border-l-0 xl:border-l border-white/10 flex flex-wrap items-center gap-3 md:gap-4 w-full mt-2 xl:mt-0">
+                  <div className="min-w-0 flex-1 md:flex-none">
+                    <div className="text-white/30 text-[9px] md:text-[10px] uppercase font-bold tracking-widest mb-0.5">Current Product</div>
+                    <div className="text-white font-semibold text-sm truncate">{scanData.product_name}</div>
                   </div>
-                  <div className="text-center px-4 border-l border-r border-white/10">
-                    <div className="text-[#FFFFFF] font-bold text-xl leading-none">{scanData.analysis?.health_score || '--'}</div>
-                    <div className="text-white/30 text-[10px] uppercase font-bold tracking-widest mt-1">Score</div>
+                  <div className="text-center px-3 md:px-4 border-l border-r border-white/10 shrink-0">
+                    <div className="text-[#FFFFFF] font-bold text-lg md:text-xl leading-none">{scanData.analysis?.health_score || '--'}</div>
+                    <div className="text-white/30 text-[9px] md:text-[10px] uppercase font-bold tracking-widest mt-1">Score</div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full border text-[10px] font-bold tracking-wider uppercase whitespace-nowrap ${badgeColor}`}>
+                  <div className={`px-2 py-1 md:px-3 md:py-1 rounded-full border text-[9px] md:text-[10px] font-bold tracking-wider uppercase whitespace-nowrap shrink-0 ${badgeColor}`}>
                     {scanData.analysis?.classification || "Unknown"}
                   </div>
                 </div>

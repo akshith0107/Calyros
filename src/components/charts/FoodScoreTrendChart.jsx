@@ -19,15 +19,15 @@ export default function FoodScoreTrendChart({ data }) {
           <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
           <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
           <Tooltip 
-            contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} 
-            itemStyle={{ color: 'var(--color-primary)' }}
+            contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }} 
+            itemStyle={{ color: '#FFFFFF' }}
           />
           <Line 
             type="monotone" 
             dataKey="score" 
-            stroke="var(--color-primary)" 
+            stroke="#FFFFFF" 
             strokeWidth={3}
-            dot={{ fill: 'var(--color-primary)', strokeWidth: 2, r: 4 }}
+            dot={{ fill: '#FFFFFF', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, fill: '#fff' }}
           />
         </LineChart>

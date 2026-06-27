@@ -81,7 +81,7 @@ export default function ProcessingView({ imageUri, onComplete }) {
                 }}
                 className={`flex items-center space-x-3 transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-400'}`}
               >
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${isCompleted ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : isActive ? 'border-white animate-pulse' : 'border-gray-500'}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${isCompleted ? 'bg-[#FFFFFF] border-[#FFFFFF]' : isActive ? 'border-white animate-pulse' : 'border-gray-500'}`}>
                   {isCompleted && (
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -89,7 +89,7 @@ export default function ProcessingView({ imageUri, onComplete }) {
                   )}
                   {isActive && <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />}
                 </div>
-                <span className={`text-sm font-medium tracking-wide ${isCompleted ? 'text-[var(--color-primary)]' : isActive ? 'text-white' : 'text-gray-500'}`}>
+                <span className={`text-sm font-medium tracking-wide ${isCompleted ? 'text-[#FFFFFF]' : isActive ? 'text-white' : 'text-gray-500'}`}>
                   {stage}
                 </span>
               </motion.div>

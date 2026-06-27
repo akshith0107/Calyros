@@ -14,9 +14,11 @@ class Allergy(Base, UUIDMixin, TimestampMixin):
     soy = Column(Boolean, default=False)
     nuts = Column(Boolean, default=False)
     eggs = Column(Boolean, default=False)
+    peanuts = Column(Boolean, default=False)
     seafood = Column(Boolean, default=False)
     sesame = Column(Boolean, default=False)
     shellfish = Column(Boolean, default=False)
+    wheat = Column(Boolean, default=False)
     other_allergies = Column(String, nullable=True)
 
     user = relationship("User", back_populates="allergy")

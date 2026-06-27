@@ -14,6 +14,7 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     # Relationships (1:1 and 1:N)
     profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
     health_condition = relationship("HealthCondition", back_populates="user", uselist=False, cascade="all, delete-orphan")
     allergy = relationship("Allergy", back_populates="user", uselist=False, cascade="all, delete-orphan")
     dietary_preference = relationship("DietaryPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")

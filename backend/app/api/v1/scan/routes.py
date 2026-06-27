@@ -11,6 +11,7 @@ from app.models.product import Product
 from app.schemas.scan import ScanHistoryListResponse
 from app.api.deps import get_current_user
 from app.models.user import User
+from sqlalchemy import or_
 
 router = APIRouter()
 
@@ -46,15 +47,25 @@ async def scan_nutrition_label(
 def get_my_scan_history(
     skip: int = 0,
     limit: int = 20,
+    search: str = None,
+    min_score: int = None,
+    max_score: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Retrieves the authenticated user's past scans.
+    Retrieves the authenticated user's past scans with advanced filtering.
     """
+    query = db.query(ScanHistory).filter(ScanHistory.user_id == current_user.id)
+    
+    if search:
+        # Join with Product to search by product name
+        query = query.join(Product, ScanHistory.product_id == Product.id).filter(
+            Product.product_name.ilike(f"%{search}%")
+        )
+        
     scans = (
-        db.query(ScanHistory)
-        .filter(ScanHistory.user_id == current_user.id)
+        query
         .order_by(ScanHistory.created_at.desc())
         .offset(skip)
         .limit(limit)

@@ -17,6 +17,7 @@ from .dietary_preference import DietaryPreference
 from .chat_session import ChatSession
 from .chat_message import ChatMessage
 from .user_analytics import BMIHistory, NutritionTargets, UserGoals
+from .settings import UserSettings
 
 # Explicitly export the classes
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     "FoodScore",
     "AIRecommendation",
     "ChatSession",
-    "ChatMessage"
+    "ChatMessage",
+    "UserSettings"
 ]

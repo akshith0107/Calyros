@@ -21,7 +21,7 @@ export default function DiseaseCompatibilityCard({ diseaseCompatibility, goalCom
         <button
           onClick={() => setActiveTab('diseases')}
           className={`pb-2 text-lg font-medium transition-colors ${
-            activeTab === 'diseases' ? 'text-white border-b-2 border-[var(--color-primary)]' : 'text-gray-500 hover:text-gray-300'
+            activeTab === 'diseases' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Medical Conditions
@@ -29,7 +29,7 @@ export default function DiseaseCompatibilityCard({ diseaseCompatibility, goalCom
         <button
           onClick={() => setActiveTab('goals')}
           className={`pb-2 text-lg font-medium transition-colors ${
-            activeTab === 'goals' ? 'text-white border-b-2 border-[var(--color-primary)]' : 'text-gray-500 hover:text-gray-300'
+            activeTab === 'goals' ? 'text-white border-b-2 border-[#FFFFFF]' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Health Goals

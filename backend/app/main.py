@@ -19,6 +19,7 @@ from app.api.v1.analytics import routes as analytics_routes
 from app.api.v1.admin import routes as admin_routes
 from app.api.v1.system import routes as system_routes
 from app.api.v1.chat import routes as chat_routes
+from app.api.v1.settings import routes as settings_routes
 from app.middleware.rate_limiter import RateLimitMiddleware
 from app.middleware.logger import StructuredLogMiddleware
 import sentry_sdk
@@ -96,3 +97,4 @@ app.include_router(scan_routes.router, prefix="/api/v1/scan", tags=["Scan"])
 app.include_router(scoring_routes.router, prefix="/api/v1/scoring", tags=["Scoring"])
 app.include_router(recommendation_routes.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
 app.include_router(chat_routes.router, prefix="/api/v1/chat", tags=["Chat"])
+app.include_router(settings_routes.router, prefix="/api/v1/settings", tags=["Settings"])

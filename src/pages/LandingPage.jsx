@@ -38,11 +38,8 @@ const LandingNavbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-          <div className="w-8 h-8 flex items-center justify-center border border-white/[0.1] rounded-full group-hover:border-white/[0.3] transition-colors bg-[#080808]">
-            <Scan size={14} className="text-white" />
-          </div>
-          <span className="font-sans font-medium text-sm tracking-widest text-white uppercase">Calyros AI</span>
+        <div className="flex items-center gap-4 group cursor-pointer transition-opacity hover:opacity-80" onClick={() => window.scrollTo(0,0)}>
+          <img src="/logo-white.svg" alt="Calyros AI" className="h-5 md:h-6 w-auto" />
         </div>
         
         <div className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.2em] uppercase font-medium text-[rgba(255,255,255,0.48)]">
@@ -100,7 +97,7 @@ const HeroSection = () => {
             transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
             className="mb-8"
           >
-            <span className="px-4 py-2 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#9F7AEA] text-[10px] font-semibold tracking-widest uppercase">
+            <span className="px-4 py-2 rounded-full border border-[#FFFFFF]/30 bg-[#FFFFFF]/10 text-[#9F7AEA] text-[10px] font-semibold tracking-widest uppercase">
               AI Nutrition Intelligence
             </span>
           </motion.div>
@@ -190,7 +187,7 @@ const IllusScanner = () => (
       <motion.div 
         animate={{ top: ['0%', '100%', '0%'] }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 right-0 h-[2px] bg-[#8B5CF6] shadow-[0_0_15px_#8B5CF6] z-10"
+        className="absolute left-0 right-0 h-[2px] bg-[#FFFFFF] shadow-[0_0_15px_#FFFFFF] z-10"
       />
     </motion.div>
   </div>
@@ -206,10 +203,10 @@ const IllusIngredients = () => (
         className="absolute w-40 h-24 border border-white/[0.1] rounded-xl bg-[#080808]/80 backdrop-blur-md flex items-center justify-center"
         style={{ 
           transform: `rotateX(60deg) rotateZ(-45deg) translateZ(${i * 20}px)`,
-          borderColor: i === 2 ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'
+          borderColor: i === 2 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)'
         }}
       >
-        {i === 2 && <div className="w-8 h-8 rounded-full border-[2px] border-[#8B5CF6] shadow-[0_0_15px_rgba(139,92,246,0.5)]" />}
+        {i === 2 && <div className="w-8 h-8 rounded-full border-[2px] border-[#FFFFFF] shadow-[0_0_15px_rgba(255,255,255,0.5)]" />}
       </motion.div>
     ))}
   </div>
@@ -227,7 +224,7 @@ const IllusHealthProfile = () => (
       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       className="absolute w-32 h-32 border border-white/[0.05] rounded-full"
     >
-      <div className="absolute top-0 left-1/2 w-2 h-2 bg-[#8B5CF6] rounded-full shadow-[0_0_10px_#8B5CF6] transform -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute top-0 left-1/2 w-2 h-2 bg-[#FFFFFF] rounded-full shadow-[0_0_10px_#FFFFFF] transform -translate-x-1/2 -translate-y-1/2" />
     </motion.div>
     <motion.div 
       animate={{ rotate: -360 }}
@@ -253,7 +250,7 @@ const IllusScoring = () => (
       />
       <defs>
         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8B5CF6" />
+          <stop offset="0%" stopColor="#FFFFFF" />
           <stop offset="100%" stopColor="#6D5EF5" />
         </linearGradient>
       </defs>
@@ -275,7 +272,7 @@ const IllusChat = () => (
     </motion.div>
     <motion.div 
       initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-      className="self-start bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 rounded-2xl rounded-tl-none px-4 py-3 text-xs text-white/90 max-w-[90%] shadow-[0_0_20px_rgba(139,92,246,0.1)]"
+      className="self-start bg-[#FFFFFF]/10 border border-[#FFFFFF]/30 rounded-2xl rounded-tl-none px-4 py-3 text-xs text-white/90 max-w-[90%] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
     >
       Based on your profile, it's high in added sugar. I'd recommend a whole-food alternative.
     </motion.div>
@@ -293,8 +290,8 @@ const IllusAlternatives = () => (
     >
       <ArrowRight size={16} />
     </motion.div>
-    <div className="w-24 h-28 border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 rounded-lg flex flex-col items-center justify-center relative shadow-[0_0_30px_rgba(139,92,246,0.15)]">
-      <div className="absolute -top-2 px-2 py-0.5 bg-[#8B5CF6] text-white text-[8px] font-bold uppercase rounded-full tracking-widest">Optimal</div>
+    <div className="w-24 h-28 border border-[#FFFFFF]/30 bg-[#FFFFFF]/10 rounded-lg flex flex-col items-center justify-center relative shadow-[0_0_30px_rgba(255,255,255,0.15)]">
+      <div className="absolute -top-2 px-2 py-0.5 bg-[#FFFFFF] text-black text-[8px] font-bold uppercase rounded-full tracking-widest">Optimal</div>
       <div className="w-10 h-10 rounded-full bg-white/20 mb-2" />
       <div className="w-12 h-1.5 bg-white/30 rounded-full" />
     </div>
@@ -303,7 +300,7 @@ const IllusAlternatives = () => (
 
 const IllusAnalytics = () => (
   <div className="relative w-full h-48 flex items-end justify-center px-8 pb-8">
-    <div className="absolute inset-0 bg-gradient-to-t from-[#8B5CF6]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+    <div className="absolute inset-0 bg-gradient-to-t from-[#FFFFFF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
     <svg width="100%" height="80" viewBox="0 0 200 80" preserveAspectRatio="none">
       <motion.path 
         d="M0,80 C40,40 60,60 100,20 C140,-20 160,40 200,10 L200,80 Z"
@@ -314,15 +311,15 @@ const IllusAnalytics = () => (
       />
       <motion.path 
         d="M0,80 C40,40 60,60 100,20 C140,-20 160,40 200,10"
-        fill="none" stroke="#8B5CF6" strokeWidth="2"
+        fill="none" stroke="#FFFFFF" strokeWidth="2"
         initial={{ pathLength: 0 }}
         whileInView={{ pathLength: 1 }}
         transition={{ duration: 1.5, ease: "easeInOut" }}
       />
       <defs>
         <linearGradient id="graphGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="rgba(139,92,246,0.3)" />
-          <stop offset="100%" stopColor="rgba(139,92,246,0)" />
+          <stop offset="0%" stopColor="rgba(255,255,255,0.3)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </linearGradient>
       </defs>
     </svg>
@@ -335,8 +332,8 @@ const IllusVault = () => (
       animate={{ y: [-3, 3, -3] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       className="w-20 h-24 border border-white/[0.15] bg-gradient-to-b from-white/[0.05] to-transparent rounded-xl backdrop-blur-md flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.05)]"
     >
-      <div className="w-6 h-6 rounded-full border-2 border-[#8B5CF6] flex items-center justify-center">
-        <div className="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full" />
+      <div className="w-6 h-6 rounded-full border-2 border-[#FFFFFF] flex items-center justify-center">
+        <div className="w-1.5 h-1.5 bg-[#FFFFFF] rounded-full" />
       </div>
     </motion.div>
   </div>
@@ -346,14 +343,14 @@ const IllusIntegrations = () => (
   <div className="relative w-full h-48 flex items-center justify-center gap-6 px-10">
     {['Vision AI', 'OCR', 'Intelligence'].map((lbl, i) => (
       <React.Fragment key={i}>
-        <div className="w-24 h-12 border border-[#8B5CF6]/30 bg-[#8B5CF6]/5 rounded-lg flex items-center justify-center text-[9px] text-[#8B5CF6] uppercase tracking-widest font-semibold shadow-[0_0_15px_rgba(139,92,246,0.1)]">
+        <div className="w-24 h-12 border border-[#FFFFFF]/30 bg-[#FFFFFF]/5 rounded-lg flex items-center justify-center text-[9px] text-[#FFFFFF] uppercase tracking-widest font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]">
           {lbl}
         </div>
         {i < 2 && (
-          <div className="h-[1px] flex-1 bg-gradient-to-r from-[#8B5CF6]/50 to-[#8B5CF6]/10 relative">
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-[#FFFFFF]/50 to-[#FFFFFF]/10 relative">
             <motion.div 
               animate={{ x: ['0%', '100%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              className="absolute top-1/2 transform -translate-y-1/2 w-1.5 h-1.5 bg-[#8B5CF6] shadow-[0_0_5px_#8B5CF6] rounded-full"
+              className="absolute top-1/2 transform -translate-y-1/2 w-1.5 h-1.5 bg-[#FFFFFF] shadow-[0_0_5px_#FFFFFF] rounded-full"
             />
           </div>
         )}
@@ -517,8 +514,7 @@ const LandingFooter = () => (
     <div className="absolute inset-0 bg-grain pointer-events-none" />
     <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
       <div className="flex items-center gap-3">
-        <Scan size={14} className="text-white" />
-        <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-white">Calyros AI</span>
+        <img src="/logo-white.svg" alt="Calyros AI" className="h-4 w-auto opacity-70 hover:opacity-100 transition-opacity" />
       </div>
       <div className="text-[10px] tracking-widest uppercase text-[rgba(255,255,255,0.48)]">
         © {new Date().getFullYear()} Calyros AI. Built with absolute precision.
@@ -582,7 +578,7 @@ const StatisticsStrip = () => {
 
 export default function LandingPage() {
   return (
-    <div className="bg-[#050505] min-h-screen font-sans selection:bg-[#8B5CF6]/30 selection:text-white overflow-x-hidden">
+    <div className="bg-[#050505] min-h-screen font-sans selection:bg-[#FFFFFF]/30 selection:text-white overflow-x-hidden">
       <LandingNavbar />
       <HeroSection />
       <PlatformOverview />

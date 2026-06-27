@@ -27,9 +27,8 @@ export default function Navbar({ variant = 'default' }) {
   return (
     <>
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Main navigation">
-        <Link to="/" className="navbar-logo" aria-label="Calyros AI Home">
-          <div className="navbar-logo-icon" aria-hidden="true">C</div>
-          Calyros AI
+        <Link to="/" className="navbar-logo group transition-opacity hover:opacity-80" aria-label="Calyros AI Home">
+          <img src="/logo-white.svg" alt="Calyros AI" className="h-5 md:h-6 w-auto" />
         </Link>
 
         {variant === 'default' && (

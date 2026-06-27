@@ -59,6 +59,7 @@ function AnimatedRoutes() {
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/scan" element={<Scan />} />
+              <Route path="/chat" element={<Chat />} />
               <Route path="/chat/:scanId" element={<Chat />} />
               <Route path="/history" element={<History />} />
               <Route path="/compare" element={<CompareProducts />} />

@@ -9,9 +9,11 @@ class AllergyBase(BaseModel):
     soy: bool = False
     nuts: bool = False
     eggs: bool = False
+    peanuts: bool = False
     seafood: bool = False
     sesame: bool = False
     shellfish: bool = False
+    wheat: bool = False
     other_allergies: Optional[str] = None
 
 class AllergyCreate(AllergyBase):

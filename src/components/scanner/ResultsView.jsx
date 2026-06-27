@@ -47,7 +47,7 @@ export default function ResultsView({ result, onClose }) {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-xl border-b border-white/5 p-4 flex justify-between items-center">
         <h2 className="text-white text-lg font-medium tracking-wide flex items-center gap-2">
-          <svg className="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-[#FFFFFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Discovery Complete
@@ -66,7 +66,7 @@ export default function ResultsView({ result, onClose }) {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
           <button 
             onClick={() => navigate(`/chat/${scanId}`)}
-            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(212,115,30,0.3)] flex items-center gap-2 transition-transform hover:scale-105"
+            className="bg-[#FFFFFF] hover:bg-[#DDDDDD] text-white text-sm font-semibold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2 transition-transform hover:scale-105"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -100,8 +100,8 @@ export default function ResultsView({ result, onClose }) {
           {/* SECTION 9: Personalized Insights */}
           {aiAnalysis.personalizedAnalysis && (
             <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-              <GlassCard hoverable={false} className="p-6 border-l-4 border-l-[var(--color-primary)]">
-                <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-2">Personalized Insights</h3>
+              <GlassCard hoverable={false} className="p-6 border-l-4 border-l-[#FFFFFF]">
+                <h3 className="text-[#FFFFFF] text-xs font-bold tracking-widest uppercase mb-2">Personalized Insights</h3>
                 <p className="text-white/90 leading-relaxed text-sm">{aiAnalysis.personalizedAnalysis}</p>
               </GlassCard>
             </motion.div>
@@ -221,7 +221,7 @@ export default function ResultsView({ result, onClose }) {
                           <span className="font-bold">Expected: </span>{alt.expected_improvement}
                         </div>
                         {alt.goal_alignment && (
-                          <div className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs p-2 rounded border border-[var(--color-primary)]/20">
+                          <div className="bg-[#FFFFFF]/10 text-[#FFFFFF] text-xs p-2 rounded border border-[#FFFFFF]/20">
                             <span className="font-bold">Goal Alignment: </span>{alt.goal_alignment}
                           </div>
                         )}
@@ -254,12 +254,12 @@ export default function ResultsView({ result, onClose }) {
           {(hasContent(ocrData.vitamins) || hasContent(ocrData.minerals)) && (
             <motion.div className="md:col-span-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
               <GlassCard hoverable={false} className="p-6">
-                <h3 className="text-[var(--color-primary)] text-xs font-bold tracking-widest uppercase mb-4">Micronutrients (Vitamins & Minerals)</h3>
+                <h3 className="text-[#FFFFFF] text-xs font-bold tracking-widest uppercase mb-4">Micronutrients (Vitamins & Minerals)</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[...ocrData.vitamins, ...ocrData.minerals].map((item, i) => (
-                    <div key={i} className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 flex justify-between items-center">
+                    <div key={i} className="bg-[#FFFFFF]/5 border border-[#FFFFFF]/20 rounded-lg p-3 flex justify-between items-center">
                       <span className="text-white/80 text-sm font-medium">{item.name}</span>
-                      <span className="text-[var(--color-primary)] font-bold text-sm">{item.value}{item.unit}</span>
+                      <span className="text-[#FFFFFF] font-bold text-sm">{item.value}{item.unit}</span>
                     </div>
                   ))}
                 </div>

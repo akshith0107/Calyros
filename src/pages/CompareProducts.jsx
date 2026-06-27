@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useScanHistory, useProfile } from '../hooks/useDashboardData';
 import GlassCard from '../components/GlassCard';
 import Button from '../components/Button';
+import InputField from '../components/InputField';
 import apiClient from '../services/apiClient';
 
 export default function CompareProducts() {
@@ -129,20 +130,20 @@ export default function CompareProducts() {
     };
     
     return (
-      <div className="grid grid-cols-3 gap-4 py-4 border-b border-white/5 items-center">
-        <div className="text-gray-400 text-sm font-medium">{label}</div>
-        <div className="bg-[#1a1a1a] p-3 rounded-lg flex justify-between items-center">
-          <span className="text-white">{compData.product_1_value}</span>
+      <div className="grid grid-cols-3 gap-4 py-4 border-b border-white/[0.05] items-center">
+        <div className="text-white/50 text-sm font-medium">{label}</div>
+        <div className="bg-[#0A0A0A] border border-white/[0.05] p-3 rounded-xl flex justify-between items-center shadow-inner">
+          <span className="text-white font-medium">{compData.product_1_value}</span>
           {compData.better_product === "product_1" && renderIndicator(true)}
           {compData.better_product === "product_2" && renderIndicator(false)}
         </div>
-        <div className="bg-[#1a1a1a] p-3 rounded-lg flex justify-between items-center">
-          <span className="text-white">{compData.product_2_value}</span>
+        <div className="bg-[#0A0A0A] border border-white/[0.05] p-3 rounded-xl flex justify-between items-center shadow-inner">
+          <span className="text-white font-medium">{compData.product_2_value}</span>
           {compData.better_product === "product_2" && renderIndicator(true)}
           {compData.better_product === "product_1" && renderIndicator(false)}
         </div>
         {compData.reason && (
-          <div className="col-span-3 text-xs text-gray-500 mt-1 pl-1">
+          <div className="col-span-3 text-xs text-white/40 mt-1 pl-1 italic">
             Reason: {compData.reason}
           </div>
         )}
@@ -151,46 +152,57 @@ export default function CompareProducts() {
   };
 
   return (
-    <main className="pt-24 pb-16 px-6 max-w-5xl mx-auto min-h-screen">
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
+    <div className="w-full max-w-7xl mx-auto pb-16 space-y-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 text-center"
+        transition={{ duration: 0.5 }}
+        className="mb-8"
       >
-        <h1 className="text-4xl font-black text-white tracking-tight mb-3">Product Comparison</h1>
-        <p className="text-gray-400">Intelligently compare two products based on your {profileObj?.profile?.health_goal?.replace('-', ' ')} goal.</p>
-      </motion.header>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">Product Comparison</h1>
+        <p className="text-[rgba(255,255,255,0.48)] text-sm font-medium">Intelligently compare two products based on your {profileObj?.profile?.health_goal?.replace('-', ' ')} goal.</p>
+      </motion.div>
 
-      <GlassCard className="mb-8 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Select Product A</label>
-            <select 
-              className="w-full bg-[#141414] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-              value={scan1}
-              onChange={(e) => setScan1(e.target.value)}
-            >
-              <option value="">-- Choose Product --</option>
-              {history?.map(s => <option key={`a-${s.id}`} value={s.id}>{s.product_name || "Unknown Product"} ({new Date(s.created_at).toLocaleDateString()})</option>)}
-            </select>
+      <GlassCard className="relative z-20 p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white/70 tracking-wide">Select Product A</label>
+            <div className="relative">
+              <select 
+                className="w-full bg-[#0A0A0A] border border-white/[0.1] rounded-xl p-4 text-white appearance-none focus:outline-none focus:border-[#FFFFFF] focus:ring-1 focus:ring-[#FFFFFF]/30 transition-all cursor-pointer hover:bg-white/[0.02]"
+                value={scan1}
+                onChange={(e) => setScan1(e.target.value)}
+              >
+                <option value="">-- Choose Product --</option>
+                {history?.map(s => <option key={`a-${s.id}`} value={s.id}>{s.product_name || "Unknown Product"} ({new Date(s.created_at).toLocaleDateString()})</option>)}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Select Product B</label>
-            <select 
-              className="w-full bg-[#141414] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-              value={scan2}
-              onChange={(e) => setScan2(e.target.value)}
-            >
-              <option value="">-- Choose Product --</option>
-              {history?.map(s => <option key={`b-${s.id}`} value={s.id}>{s.product_name || "Unknown Product"} ({new Date(s.created_at).toLocaleDateString()})</option>)}
-            </select>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white/70 tracking-wide">Select Product B</label>
+            <div className="relative">
+              <select 
+                className="w-full bg-[#0A0A0A] border border-white/[0.1] rounded-xl p-4 text-white appearance-none focus:outline-none focus:border-[#FFFFFF] focus:ring-1 focus:ring-[#FFFFFF]/30 transition-all cursor-pointer hover:bg-white/[0.02]"
+                value={scan2}
+                onChange={(e) => setScan2(e.target.value)}
+              >
+                <option value="">-- Choose Product --</option>
+                {history?.map(s => <option key={`b-${s.id}`} value={s.id}>{s.product_name || "Unknown Product"} ({new Date(s.created_at).toLocaleDateString()})</option>)}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
           </div>
         </div>
         
-        {error && <div className="mt-4 text-red-400 text-sm">{error}</div>}
+        {error && <div className="mt-6 text-red-400 text-sm font-medium">{error}</div>}
         
-        <div className="mt-6 flex justify-end">
-          <Button variant="primary" onClick={handleCompare} disabled={loading}>
+        <div className="mt-8 flex justify-end border-t border-white/[0.05] pt-6">
+          <Button variant="primary" onClick={handleCompare} disabled={loading} className="px-8 py-3 rounded-full font-bold">
             {loading ? 'Comparing...' : 'Compare Products'}
           </Button>
         </div>
@@ -202,38 +214,41 @@ export default function CompareProducts() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* Winner Banner */}
-            <GlassCard className={`border-l-4 ${comparison.winner === 'product_1' || comparison.winner === 'product_2' ? 'border-[var(--color-primary)]' : 'border-gray-500'} overflow-hidden relative`}>
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <GlassCard className={`border-l-4 ${comparison.winner === 'product_1' || comparison.winner === 'product_2' ? 'border-[#FFFFFF]' : 'border-gray-500'} overflow-hidden relative p-8`}>
+              <div className="absolute top-0 right-0 p-6 opacity-10 blur-xl">
+                <svg className="w-48 h-48 text-[#FFFFFF]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
+              <h2 className="text-3xl font-bold text-white mb-6 relative z-10">
                 {comparison.winner === 'tie' ? "It's a Tie!" : `Winner: ${comparison.winner === 'product_1' ? comparison.product_1_name : comparison.product_2_name}`}
               </h2>
-              <div className="mt-4 p-4 bg-[#141414] rounded-lg border border-white/5">
-                <h3 className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wider mb-2">Why Calyros Chose This Product</h3>
-                <p className="text-gray-300 leading-relaxed">{comparison.reasoning}</p>
-                
-                <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mt-4 mb-2">Personalized For You</h3>
-                <p className="text-gray-300 leading-relaxed">{comparison.personalized_recommendation}</p>
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-5 bg-[#050505] rounded-xl border border-white/[0.05] shadow-inner">
+                  <h3 className="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider mb-3">Why Calyros Chose This Product</h3>
+                  <p className="text-white/80 leading-relaxed text-sm">{comparison.reasoning}</p>
+                </div>
+                <div className="p-5 bg-[#050505] rounded-xl border border-white/[0.05] shadow-inner">
+                  <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-3">Personalized For You</h3>
+                  <p className="text-white/80 leading-relaxed text-sm">{comparison.personalized_recommendation}</p>
+                </div>
               </div>
             </GlassCard>
 
             {/* Side-by-Side UI */}
-            <GlassCard>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+            <GlassCard className="p-8">
+              <div className="grid grid-cols-3 gap-6 mb-8">
                 <div></div>
-                <div className="text-lg font-bold text-white text-center p-3 bg-[#1a1a1a] rounded-lg border border-white/5 shadow-inner">
+                <div className="text-xl font-bold text-white text-center p-4 bg-[#0A0A0A] rounded-2xl border border-white/[0.08] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                   {comparison.product_1_name}
                 </div>
-                <div className="text-lg font-bold text-white text-center p-3 bg-[#1a1a1a] rounded-lg border border-white/5 shadow-inner">
+                <div className="text-xl font-bold text-white text-center p-4 bg-[#0A0A0A] rounded-2xl border border-white/[0.08] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                   {comparison.product_2_name}
                 </div>
               </div>
               
-              <div className="flex flex-col">
+              <div className="flex flex-col space-y-2">
                 {renderMetric("Nutrition", comparison.nutrition_comparison)}
                 {renderMetric("Ingredient Quality", comparison.ingredient_comparison)}
                 {renderMetric("Processing", comparison.processing_comparison)}
@@ -243,36 +258,36 @@ export default function CompareProducts() {
 
             {/* Strengths / Weaknesses */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <GlassCard>
-                <h3 className="text-xl font-bold text-white mb-4 text-center">{comparison.product_1_name}</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-green-400 font-semibold mb-2 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Strengths</h4>
-                    <ul className="space-y-1">
-                      {comparison.strengths_product_1.map((s, i) => <li key={i} className="text-sm text-gray-400 ml-6 list-disc">{s}</li>)}
+              <GlassCard className="p-8">
+                <h3 className="text-2xl font-bold text-white mb-6 text-center">{comparison.product_1_name}</h3>
+                <div className="space-y-6">
+                  <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-5">
+                    <h4 className="text-green-400 font-semibold mb-3 flex items-center tracking-wide"><svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Strengths</h4>
+                    <ul className="space-y-2">
+                      {comparison.strengths_product_1.map((s, i) => <li key={i} className="text-sm text-white/80 flex items-start gap-2"><span className="text-green-500 mt-1">•</span>{s}</li>)}
                     </ul>
                   </div>
-                  <div>
-                    <h4 className="text-red-400 font-semibold mb-2 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Weaknesses</h4>
-                    <ul className="space-y-1">
-                      {comparison.weaknesses_product_1.map((s, i) => <li key={i} className="text-sm text-gray-400 ml-6 list-disc">{s}</li>)}
+                  <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-5">
+                    <h4 className="text-red-400 font-semibold mb-3 flex items-center tracking-wide"><svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Weaknesses</h4>
+                    <ul className="space-y-2">
+                      {comparison.weaknesses_product_1.map((s, i) => <li key={i} className="text-sm text-white/80 flex items-start gap-2"><span className="text-red-500 mt-1">•</span>{s}</li>)}
                     </ul>
                   </div>
                 </div>
               </GlassCard>
-              <GlassCard>
-                <h3 className="text-xl font-bold text-white mb-4 text-center">{comparison.product_2_name}</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-green-400 font-semibold mb-2 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Strengths</h4>
-                    <ul className="space-y-1">
-                      {comparison.strengths_product_2.map((s, i) => <li key={i} className="text-sm text-gray-400 ml-6 list-disc">{s}</li>)}
+              <GlassCard className="p-8">
+                <h3 className="text-2xl font-bold text-white mb-6 text-center">{comparison.product_2_name}</h3>
+                <div className="space-y-6">
+                  <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-5">
+                    <h4 className="text-green-400 font-semibold mb-3 flex items-center tracking-wide"><svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Strengths</h4>
+                    <ul className="space-y-2">
+                      {comparison.strengths_product_2.map((s, i) => <li key={i} className="text-sm text-white/80 flex items-start gap-2"><span className="text-green-500 mt-1">•</span>{s}</li>)}
                     </ul>
                   </div>
-                  <div>
-                    <h4 className="text-red-400 font-semibold mb-2 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Weaknesses</h4>
-                    <ul className="space-y-1">
-                      {comparison.weaknesses_product_2.map((s, i) => <li key={i} className="text-sm text-gray-400 ml-6 list-disc">{s}</li>)}
+                  <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-5">
+                    <h4 className="text-red-400 font-semibold mb-3 flex items-center tracking-wide"><svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Weaknesses</h4>
+                    <ul className="space-y-2">
+                      {comparison.weaknesses_product_2.map((s, i) => <li key={i} className="text-sm text-white/80 flex items-start gap-2"><span className="text-red-500 mt-1">•</span>{s}</li>)}
                     </ul>
                   </div>
                 </div>
@@ -280,47 +295,64 @@ export default function CompareProducts() {
             </div>
 
             {/* Chat Integration */}
-            <GlassCard>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                Ask Calyros AI
-              </h3>
-              <div className="bg-[#141414] rounded-lg p-4 h-64 overflow-y-auto mb-4 border border-white/5">
+            <GlassCard className="flex flex-col h-[500px] border border-[#FFFFFF]/20 p-0 overflow-hidden mt-8">
+              <div className="p-5 border-b border-white/[0.05] bg-black/40 backdrop-blur-md">
+                <h3 className="text-lg font-bold text-white flex items-center">
+                  <svg className="w-6 h-6 mr-3 text-[#FFFFFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  Ask Calyros AI
+                </h3>
+              </div>
+              
+              <div className="flex-1 p-5 overflow-y-auto space-y-4 custom-scrollbar" ref={chatEndRef}>
                 {chatHistory.length === 0 && (
-                  <div className="text-gray-500 text-sm text-center mt-10">Ask a question about these two products...<br/>"Which one is better for weight loss?"</div>
+                  <div className="h-full flex flex-col items-center justify-center text-white/30 text-sm italic">
+                    Ask a question about these two products...<br/>"Which one is better for weight loss?"
+                  </div>
                 )}
                 {chatHistory.map((msg, i) => (
-                  <div key={i} className={`mb-4 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-5 py-3 ${
                       msg.role === 'user' 
-                        ? 'bg-[var(--color-primary)] text-white shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.3)]' 
-                        : 'bg-white/5 border border-white/10 text-gray-200'
+                        ? 'bg-[#FFFFFF] text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
+                        : 'bg-white/[0.05] text-white/90 border border-white/[0.08]'
                     }`}>
-                      {msg.content}
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        {msg.content || (msg.role === 'assistant' && chatLoading && i === chatHistory.length - 1 ? <span className="animate-pulse">...</span> : '')}
+                      </p>
                     </div>
                   </div>
                 ))}
                 <div ref={chatEndRef} />
               </div>
-              <form onSubmit={handleChatSubmit} className="flex gap-2">
-                <input
-                  type="text"
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  placeholder="Ask about these products..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                  disabled={chatLoading}
-                />
-                <Button type="submit" variant="primary" className="!rounded-full px-6" disabled={chatLoading}>
-                  Send
-                </Button>
+
+              <form onSubmit={handleChatSubmit} className="p-4 bg-black/40 border-t border-white/[0.05]">
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    placeholder="Ask about these products..."
+                    className="w-full bg-[#0A0A0A] border border-white/[0.1] rounded-full px-6 py-4 text-white text-sm focus:outline-none focus:border-[#FFFFFF] focus:ring-1 focus:ring-[#FFFFFF] transition-all duration-300 pr-14 placeholder-white/30"
+                    disabled={chatLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatMessage.trim() || chatLoading}
+                    className="absolute right-2 p-2.5 bg-[#FFFFFF] hover:bg-[#DDDDDD] disabled:opacity-50 disabled:hover:bg-[#FFFFFF] text-black rounded-full transition-colors shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
               </form>
             </GlassCard>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </div>
   );
 }

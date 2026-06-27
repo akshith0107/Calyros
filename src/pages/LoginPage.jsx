@@ -395,13 +395,8 @@ export default function LoginPage() {
             <canvas id="particle-canvas" ref={canvasRef}></canvas>
             
             {/* Branding Content */}
-            <div className="content-layer text-center px-xl max-w-lg">
-              <div className="mb-lg flex justify-center">
-                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl shadow-2xl">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '32px' }}>memory</span>
-                </div>
-              </div>
-              <h1 className="font-display-lg text-display-lg text-gradient mb-md">Calyros AI</h1>
+            <div className="content-layer text-center px-xl max-w-lg flex flex-col items-center">
+              <img src="/logo-white.svg" alt="Calyros AI" className="h-10 mb-md opacity-90" />
               <p className="font-body-lg text-body-lg text-on-surface-variant">Your Personal Food Intelligence System.</p>
               <div className="mt-xl flex gap-sm justify-center">
                 <div className="px-sm py-xs bg-surface border border-white/5 rounded-full font-label-sm text-label-sm text-on-surface-variant backdrop-blur-md">v2.4.0-rc</div>
@@ -415,13 +410,8 @@ export default function LoginPage() {
           {/* Right Side: Authentication */}
           <div className="w-full md:w-1/2 h-full flex flex-col justify-center items-center px-gutter relative z-10">
             {/* Mobile Branding (hidden on desktop) */}
-            <div className="md:hidden text-center mb-xl w-full">
-              <div className="mb-md flex justify-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-xl shadow-xl">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>memory</span>
-                </div>
-              </div>
-              <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-gradient">Calyros AI</h1>
+            <div className="md:hidden text-center mb-xl w-full flex flex-col items-center">
+              <img src="/logo-white.svg" alt="Calyros AI" className="h-8 opacity-90 mb-md" />
             </div>
             
             {/* Login Card */}

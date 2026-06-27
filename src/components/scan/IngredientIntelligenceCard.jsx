@@ -53,7 +53,7 @@ export default function IngredientIntelligenceCard({ ingredients, processingLeve
             key={c}
             onClick={() => setFilter(c)}
             className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors ${
-              filter === c ? 'bg-[var(--color-primary)] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              filter === c ? 'bg-[#FFFFFF] text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
             {c}

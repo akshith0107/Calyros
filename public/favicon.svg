@@ -1,10 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#888888"/>
-    </linearGradient>
+    <style>
+      .brand { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: 800; font-size: 64px; fill: #FFFFFF; }
+      .dot { fill: #8B5CF6; font-size: 64px;}
+    </style>
   </defs>
-  <circle cx="16" cy="16" r="14" fill="#050505" stroke="url(#g)" stroke-width="1.5"/>
-  <text x="16" y="21" text-anchor="middle" fill="url(#g)" font-family="Inter,sans-serif" font-size="14" font-weight="700">N</text>
+  <text x="12" y="65" class="brand">C<tspan dx="-2" class="dot">.</tspan></text>
 </svg>

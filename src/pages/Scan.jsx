@@ -137,15 +137,16 @@ export default function Scan() {
   };
 
   return (
-    <main className="dash-main flex flex-col pt-24 min-h-screen">
-      <motion.header
-        className="mb-8"
-        initial={{ opacity: 0, y: 16 }}
+    <div className="w-full max-w-7xl mx-auto space-y-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-8"
       >
-        <h1 className="dash-welcome-title">Scan Product</h1>
-        <p className="dash-welcome-sub">Capture or upload a nutrition label for immediate AI analysis.</p>
-      </motion.header>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">Scan Product</h1>
+        <p className="text-[rgba(255,255,255,0.48)] text-sm font-medium">Capture or upload a nutrition label for immediate AI analysis.</p>
+      </motion.div>
 
       <div className="flex-1 relative bg-black/40 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md min-h-[600px]">
         {state === 'IDLE' && (
@@ -170,81 +171,81 @@ export default function Scan() {
               Supported: JPG, PNG, WEBP
             </div>
 
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-full max-w-2xl">
-                <label className="cursor-pointer block group">
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => handleCapture(e.target.result);
-                        reader.readAsDataURL(file);
-                      }
-                    }} 
-                  />
-                  <div className="border-2 border-dashed border-[var(--color-primary)] rounded-3xl p-12 text-center transition-all duration-300 bg-[var(--color-primary)]/5 hover:bg-[var(--color-primary)]/10 group-hover:border-[var(--color-primary-hover)] group-hover:shadow-[0_0_30px_rgba(212,115,30,0.2)]">
-                    
-                    <div className="w-24 h-24 bg-[var(--color-primary)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl transform transition-transform group-hover:scale-110">
-                      <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+              <label className="cursor-pointer group relative block w-full max-w-2xl mx-auto">
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => handleCapture(e.target.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+                
+                <div className="relative overflow-hidden rounded-3xl bg-[#050505] border border-white/[0.08] p-12 text-center transition-all duration-300 group-hover:border-[#FFFFFF]/50 group-hover:bg-white/[0.02]">
+                  {/* Grain */}
+                  <div className="absolute inset-0 bg-grain pointer-events-none opacity-30" />
+                  
+                  {/* Subtle Glow */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#FFFFFF]/20 blur-[100px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  
+                  <div className="relative z-10">
+                    <div className="w-20 h-20 rounded-full bg-white/[0.03] border border-white/[0.1] flex items-center justify-center mx-auto mb-6 shadow-xl transform transition-transform group-hover:scale-110 duration-500 group-hover:border-[#FFFFFF]/30">
+                      <svg className="w-8 h-8 text-white/80 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
                     
-                    <h2 className="text-3xl font-bold text-white mb-3">Upload or Capture</h2>
-                    <p className="text-lg text-gray-300 mb-8 max-w-md mx-auto">
+                    <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Upload or Capture Image</h2>
+                    <p className="text-sm text-white/40 mb-8 max-w-md mx-auto">
                       Drag & drop a nutrition label image here, or click to browse files and capture from camera.
                     </p>
                     
                     <div className="flex items-center justify-center gap-4 text-sm font-medium">
-                      <span className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm transition-colors border border-white/10 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
+                      <span className="px-6 py-3 bg-[#0A0A0A] hover:bg-white/[0.05] text-white rounded-full transition-all duration-300 border border-white/[0.08] hover:border-white/[0.2] shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex items-center gap-2">
                         Browse Files
                       </span>
                       <button 
                         type="button"
                         onClick={(e) => { e.preventDefault(); setState('CAMERA'); }}
-                        className="px-6 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl shadow-lg transition-colors flex items-center gap-2"
+                        className="px-6 py-3 bg-[#FFFFFF] hover:bg-[#DDDDDD] text-white rounded-full shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all duration-300 flex items-center gap-2"
                       >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        </svg>
                         Use Camera
                       </button>
                     </div>
                   </div>
-                </label>
-              </div>
+                </div>
+              </label>
             </div>
             
             {/* Tips Section */}
-            <div className="mt-auto grid grid-cols-3 gap-6 pt-8 border-t border-white/10">
-              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold">1</span>
+            <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 border-t border-white/[0.05] relative z-10 px-8 pb-8">
+              <div className="bg-[#050505]/50 rounded-2xl p-5 border border-white/[0.05] backdrop-blur-md">
+                <div className="w-8 h-8 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mb-3">
+                  <span className="text-white text-xs font-bold">1</span>
                 </div>
-                <h3 className="text-white font-semibold mb-1">Good Lighting</h3>
-                <p className="text-gray-400 text-sm">Ensure the label is well-lit without harsh glares.</p>
+                <h3 className="text-white font-medium mb-1 text-sm">Good Lighting</h3>
+                <p className="text-white/40 text-xs leading-relaxed">Ensure the label is well-lit without harsh glares.</p>
               </div>
-              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold">2</span>
+              <div className="bg-[#050505]/50 rounded-2xl p-5 border border-white/[0.05] backdrop-blur-md">
+                <div className="w-8 h-8 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mb-3">
+                  <span className="text-white text-xs font-bold">2</span>
                 </div>
-                <h3 className="text-white font-semibold mb-1">Keep it Flat</h3>
-                <p className="text-gray-400 text-sm">Smooth out wrinkles and avoid scanning curves.</p>
+                <h3 className="text-white font-medium mb-1 text-sm">Keep it Flat</h3>
+                <p className="text-white/40 text-xs leading-relaxed">Smooth out wrinkles and avoid scanning curves.</p>
               </div>
-              <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold">3</span>
+              <div className="bg-[#050505]/50 rounded-2xl p-5 border border-white/[0.05] backdrop-blur-md">
+                <div className="w-8 h-8 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mb-3">
+                  <span className="text-white text-xs font-bold">3</span>
                 </div>
-                <h3 className="text-white font-semibold mb-1">Full Label</h3>
-                <p className="text-gray-400 text-sm">Capture all nutrition facts and ingredients clearly.</p>
+                <h3 className="text-white font-medium mb-1 text-sm">Full Label</h3>
+                <p className="text-white/40 text-xs leading-relaxed">Capture all nutrition facts and ingredients clearly.</p>
               </div>
             </div>
           </div>
@@ -281,6 +282,6 @@ export default function Scan() {
           )}
         </AnimatePresence>
       </div>
-    </main>
+    </div>
   );
 }
